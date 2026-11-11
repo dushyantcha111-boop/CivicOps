@@ -1,0 +1,6 @@
+{
+  "name": "CivicOps - Smart Apartment Community Platform",
+  "description": "Comprehensive smart community operations platform featuring Community Memory Graph, Reliability Radar, complaint-to-resolution workflows, gate clearance, visitor management, and maintenance work orders.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

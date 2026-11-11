@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: civicops-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: civicops_db
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: civicops_user
+      MYSQL_PASSWORD: civicops_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: civicops-spring-backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/civicops_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: civicops_user
+      SPRING_DATASOURCE_PASSWORD: civicops_password
+      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:

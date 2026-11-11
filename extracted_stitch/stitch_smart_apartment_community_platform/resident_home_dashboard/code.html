@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#f8f9ff;}body{overscroll-behavior-y:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-primary-fixed-variant": "#003ea8", "surface-bright": "#f8f9ff", "surface-container-highest": "#d3e4fe", "error": "#ba1a1a", "secondary": "#565e74", "surface-container-lowest": "#ffffff", "on-secondary-container": "#5c647a", "inverse-on-surface": "#eaf1ff", "primary-container": "#2563eb", "tertiary-fixed": "#6ffbbe", "on-error-container": "#93000a", "on-secondary-fixed-variant": "#3f465c", "surface-container-low": "#eff4ff", "surface-container-high": "#dce9ff", "primary-fixed": "#dbe1ff", "secondary-fixed": "#dae2fd", "inverse-primary": "#b4c5ff", "surface-container": "#e5eeff", "tertiary-fixed-dim": "#4edea3", "inverse-surface": "#213145", "primary": "#004ac6", "outline-variant": "#c3c6d7", "on-tertiary": "#ffffff", "on-secondary-fixed": "#131b2e", "surface": "#f8f9ff", "on-tertiary-container": "#bdffdb", "on-primary-container": "#eeefff", "on-primary": "#ffffff", "on-error": "#ffffff", "on-surface-variant": "#434655", "tertiary": "#006242", "tertiary-container": "#007d55", "secondary-fixed-dim": "#bec6e0", "outline": "#737686", "background": "#f8f9ff", "secondary-container": "#dae2fd", "on-primary-fixed": "#00174b", "on-background": "#0b1c30", "on-tertiary-fixed-variant": "#005236", "on-surface": "#0b1c30", "primary-fixed-dim": "#b4c5ff", "surface-variant": "#d3e4fe", "on-secondary": "#ffffff", "on-tertiary-fixed": "#002113", "surface-dim": "#cbdbf5", "error-container": "#ffdad6", "surface-tint": "#0053db" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "space-xl": "2rem", "gutter-mobile": "0.75rem", "space-xs": "0.25rem", "gutter": "1.5rem", "space-lg": "1.5rem", "margin-mobile": "1rem", "space-md": "1rem", "margin": "1.5rem", "space-sm": "0.5rem" }, fontFamily: { "title-lg": ["Inter"], "label-sm": ["Inter"], "label-lg": ["Inter"], "headline-md": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "body-md": ["Inter"], "headline-lg-mobile": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "display-lg-mobile": ["Plus Jakarta Sans"], "label-md": ["Inter"], "title-md": ["Inter"], "body-lg": ["Inter"], "body-sm": ["Inter"], "display-lg": ["Plus Jakarta Sans"] }, fontSize: { "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "fontWeight": "600" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "600" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-md": ["0.875rem", { "lineHeight": "1.375rem", "fontWeight": "400" }], "headline-lg-mobile": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-lg": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "display-lg-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }], "body-sm": ["0.75rem", { "lineHeight": "1.125rem", "fontWeight": "400" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-6 px-margin-mobile flex items-center justify-between text-on-surface select-none"><span class="font-label-sm text-label-sm font-semibold tracking-normal">09:41</span><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] leading-none text-on-surface">network_cell</span><span class="material-symbols-outlined text-[14px] leading-none text-on-surface">wifi</span><div class="flex items-center gap-0.5"><span class="font-label-sm text-label-sm font-semibold">98%</span><span class="material-symbols-outlined text-[14px] leading-none text-on-surface">battery_full</span></div></div></div><div class="h-16 px-margin-mobile flex items-center justify-between gap-space-xs"><div class="flex items-center gap-space-sm min-w-0 flex-1"><img alt="Smart Apartment Community Emblem" class="h-8 w-auto object-contain shrink-0" src="https://lh3.googleusercontent.com/aida/ALJJyrAQvWZg6Y6VKHBLbYbtE8vs1cUPytLxfICDNxz1u4-bRHAWyoP1BNqHL3GkJo5Odq4Xsg906E6ojYa8k6RFBGn8HJpO0KZeJ9bnFsMSwjY_6rxeed3egpKVKYAfaSNURQ2YTmCBKiYAsD0-jDGHitsno4c6zehsq1Sz-7rbKbBTHrSoHn0XHAGH6B6IWMdnRZS9nXdA4bCObUhHQnkBcOCQ64xSkJFm4Xbqm1VT8SU"/><button class="flex items-center gap-1 text-left min-w-0 py-1 rounded-lg focus:outline-none focus:bg-surface-container-high transition-colors" type="button"><div class="flex flex-col min-w-0"><div class="flex items-center gap-1"><span class="font-title-md text-title-md text-on-surface font-semibold truncate">Green Valley Residency</span><span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0">arrow_drop_down</span></div><span class="font-body-sm text-body-sm text-secondary truncate">Tower B, Flat 402</span></div></button></div><div class="flex items-center gap-space-sm shrink-0"><button aria-label="Quick Emergency Panic Alert" class="w-11 h-11 rounded-full bg-error-container text-on-error-container flex items-center justify-center shadow-[0_1px_4px_rgba(186,26,26,0.2)] active:scale-95 transition-transform" type="button"><div class="relative flex items-center justify-center"><span class="material-symbols-outlined text-[22px] text-error">shield</span><span class="material-symbols-outlined text-[12px] absolute text-error animate-bounce">notifications_active</span></div></button><button aria-label="Resident Profile" class="w-11 h-11 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary" type="button"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAin8K2o4feD3pds5Rz3iykh2lg-7UuYB9gqyxc7zzXaaHN47z79FA48mvd4GMFtLPFcZE1HL71la4zg6B3XmsUgNBLSHpXGFykErW51Myq156kkQWFGAd3lysWcZndy8rxLNz36ykryJxS7ClqPKGxh-MO42hJQ0qgpK-wBdGDavD7lwf_zYqWiEA5Cwvtzef_l2YmRe3utAK8CMTOrelC3ItFBEQzYR_78JnWMQU"/></button></div></div></header><main class="flex flex-col relative w-full pt-[5.5rem] pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Resident Warmth & Quick System Pulse -->
+<section class="px-margin-mobile pt-space-xs pb-space-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Namaste, Rahul!</span>
+<span class="inline-block animate-wave text-[1.25rem]">🙏</span>
+</div>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="font-body-sm text-body-sm text-secondary font-medium">Flat B-402 • Tower B</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm text-primary font-semibold">Owner Resident</span>
+</div>
+</div>
+<!-- Society Health Live Pill -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low shadow-sm shrink-0">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold uppercase tracking-wider">All Systems Normal</span>
+</div>
+</div>
+</section>
+<!-- Quick Action 4-Grid (Tactile, Functional Indian Society Ops) -->
+<section class="px-margin-mobile py-space-xs">
+<div class="grid grid-cols-2 gap-gutter-mobile">
+<!-- 1. Pre-Approve Visitor -->
+<button class="group relative flex flex-col items-start justify-between p-3.5 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all text-left overflow-hidden active:scale-[0.98]" type="button">
+<div class="flex items-center justify-between w-full">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">person_add</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold">Fast Pass</span>
+</div>
+<div class="mt-3">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">Pre-Approve</h2>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Visitor / Cab Entry OTP</p>
+</div>
+<div class="mt-2.5 flex items-center gap-1 text-primary">
+<span class="font-label-sm text-label-sm font-semibold">Generate Pin</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</div>
+</button>
+<!-- 2. Society Dues -->
+<button class="group relative flex flex-col items-start justify-between p-3.5 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all text-left overflow-hidden active:scale-[0.98]" type="button">
+<div class="flex items-center justify-between w-full">
+<div class="w-10 h-10 rounded-xl bg-surface-variant flex items-center justify-center text-on-primary-fixed-variant group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-semibold">Due in 4d</span>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline gap-1">
+<h2 class="font-title-md text-title-md text-on-surface font-bold leading-tight">₹4,250</h2>
+<span class="font-label-sm text-label-sm text-secondary line-through">₹4,500</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Society Maintenance</p>
+</div>
+<div class="mt-2.5 flex items-center gap-1 text-primary">
+<span class="font-label-sm text-label-sm font-semibold">Pay via UPI</span>
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+</div>
+</button>
+<!-- 3. Raise Complaint -->
+<button class="group relative flex flex-col items-start justify-between p-3.5 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all text-left overflow-hidden active:scale-[0.98]" type="button">
+<div class="flex items-center justify-between w-full">
+<div class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-fixed group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">report_problem</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant font-semibold">1 Active</span>
+</div>
+<div class="mt-3">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">Helpdesk</h2>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Plumbing, Electric &amp; Common</p>
+</div>
+<div class="mt-2.5 flex items-center gap-1 text-primary">
+<span class="font-label-sm text-label-sm font-semibold">Log Complaint</span>
+<span class="material-symbols-outlined text-[14px]">add</span>
+</div>
+</button>
+<!-- 4. Book Amenities -->
+<button class="group relative flex flex-col items-start justify-between p-3.5 rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all text-left overflow-hidden active:scale-[0.98]" type="button">
+<div class="flex items-center justify-between w-full">
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[22px]">sports_tennis</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-low text-secondary font-semibold">Open</span>
+</div>
+<div class="mt-3">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">Amenities</h2>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Clubhouse, Squash, Turf</p>
+</div>
+<div class="mt-2.5 flex items-center gap-1 text-primary">
+<span class="font-label-sm text-label-sm font-semibold">Check Slots</span>
+<span class="material-symbols-outlined text-[14px]">calendar_month</span>
+</div>
+</button>
+</div>
+</section>
+<!-- Live Gate 2 Activity: Instant Clearance Card -->
+<section class="px-margin-mobile pt-space-md">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">sensor_door</span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Gate Approvals</h2>
+<span class="w-5 h-5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold">2</span>
+</div>
+<button class="font-label-md text-label-md text-primary font-semibold hover:underline" type="button">View History</button>
+</div>
+<!-- Active Deliveries Queue Stack -->
+<div class="flex flex-col gap-space-sm">
+<!-- Item 1: Swiggy Food Delivery -->
+<div class="relative bg-surface-container-lowest rounded-xl p-3.5 shadow-sm overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
+<div class="flex items-start justify-between gap-space-sm pl-1">
+<div class="flex items-start gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0 overflow-hidden relative">
+<span class="material-symbols-outlined text-[26px] text-amber-600">delivery_dining</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-title-md text-on-surface font-semibold truncate">Swiggy Delivery Partner</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Gate 2</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary truncate">Order: Punjabi By Nature • ₹430</p>
+<div class="flex items-center gap-1 mt-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[13px] text-secondary">security</span>
+<span class="font-label-sm text-label-sm text-secondary">Verified by Guard Satpal Singh (10:14 AM)</span>
+</div>
+</div>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded shrink-0">At Gate</span>
+</div>
+<div class="grid grid-cols-2 gap-space-xs mt-3 pl-1">
+<button class="w-full h-10 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md font-semibold flex items-center justify-center gap-1 active:bg-surface-container-highest transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-error">close</span>
+            Deny Entry
+          </button>
+<button class="w-full h-10 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-semibold flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[16px]">check</span>
+            Allow Entry
+          </button>
+</div>
+</div>
+<!-- Item 2: Amazon Parcel Clearance -->
+<div class="relative bg-surface-container-lowest rounded-xl p-3.5 shadow-sm overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-primary-container"></div>
+<div class="flex items-start justify-between gap-space-sm pl-1">
+<div class="flex items-start gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[26px] text-primary">package_2</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-title-md text-on-surface font-semibold truncate">Amazon Prime Courier</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Vehicle DL-04-8921</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary truncate">OTP Pass requested for main lobby drop</p>
+<div class="flex items-center gap-1 mt-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[13px] text-secondary">schedule</span>
+<span class="font-label-sm text-label-sm text-secondary">Awaiting response (2 mins ago)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between mt-3 pt-2.5 pl-1 border-t border-surface-container-low">
+<button class="font-label-sm text-label-sm font-semibold text-secondary hover:text-on-surface flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[15px]">meeting_room</span>
+            Leave at Gate Guard Box
+          </button>
+<button class="px-3.5 py-1.5 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold shadow-sm active:scale-95 transition-transform flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[15px]">send_to_mobile</span>
+            Send Entry Code
+          </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Signature Feature: Resolution Trust Status Hub -->
+<section class="px-margin-mobile pt-space-lg">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary-container text-[20px]">verified</span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Resolution Trust Index</h2>
+</div>
+<span class="font-label-sm text-label-sm font-semibold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">SLA: 98.4%</span>
+</div>
+<!-- Active Grievance Card with Live Micro-Timeline -->
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between pb-3 border-b border-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-primary font-bold">#GVR-2024-884</span>
+<span class="font-label-sm text-label-sm text-secondary">Logged Yesterday, 4:15 PM</span>
+</div>
+<span class="font-label-sm text-label-sm px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+          In Progress
+        </span>
+</div>
+<div class="mt-3">
+<h3 class="font-title-md text-title-md text-on-surface font-semibold leading-snug">Water seepage in master bathroom conduit</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Inspection completed. Repair team replacing junction seal and pressure manifold.</p>
+</div>
+<!-- Technician Profile Capsule -->
+<div class="mt-3.5 p-2.5 rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative">
+<img class="w-10 h-10 rounded-full object-cover shrink-0" data-alt="Close up portrait photograph of Ramesh Kumar, an experienced and reliable Indian senior maintenance supervisor wearing a clean navy blue technician uniform and ID badge, smiling warmly and confidently under bright warm daylight, authentic documentary style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_P0a3C3Wz4f8E7s1Y3gpz1zAbTJhU00d23IPa11JL-WTZk8xUKNP9cPTlwnRfoG4HjAY7MATirz_ZOTGeBF3N9nlmSkVkpaT9O-hGrBSauUIkI-5W6d3JtP_HVTzXByGViznXi_RLQPSxgzKz7BSZN7DluRPw_DWjl7T94mGMBMCEA_ooMPJgAy94HH60dVBxI_iiV-FlJi-Gx-q-xcIR79cHArxURCZgnJ8Hgac"/>
+<span class="w-3 h-3 bg-tertiary rounded-full absolute bottom-0 right-0 ring-2 ring-surface-container-low"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold truncate">Ramesh K. (Plumbing Lead)</span>
+<span class="font-body-sm text-body-sm text-secondary truncate">Assigned by Tower B Facility Desk</span>
+</div>
+</div>
+<a aria-label="Call Technician" class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary active:scale-95 transition-transform" href="tel:+919876543210">
+<span class="material-symbols-outlined text-[18px]">call</span>
+</a>
+</div>
+<!-- Trust Visual Timeline -->
+<div class="mt-4 pt-2">
+<div class="flex items-center justify-between text-secondary mb-2">
+<span class="font-label-sm text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant">Live Lifecycle</span>
+<span class="font-label-sm text-label-sm font-medium text-tertiary-container">Target resolution: Today, 3:00 PM</span>
+</div>
+<div class="relative flex items-center justify-between w-full px-1">
+<!-- Step 1: Registered -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] font-bold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Logged</span>
+</div>
+<!-- Line 1 -->
+<div class="flex-1 h-0.5 bg-primary -mx-2 mb-4"></div>
+<!-- Step 2: Inspected -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-[12px] font-bold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Inspected</span>
+</div>
+<!-- Line 2 -->
+<div class="flex-1 h-0.5 bg-primary -mx-2 mb-4"></div>
+<!-- Step 3: Work in Progress -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-[12px] font-bold shadow-sm">
+<span class="material-symbols-outlined text-[14px] animate-spin">sync</span>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-primary">In Action</span>
+</div>
+<!-- Line 3 -->
+<div class="flex-1 h-0.5 bg-surface-container-highest -mx-2 mb-4"></div>
+<!-- Step 4: Closed / Verified -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest text-secondary flex items-center justify-center text-[12px] font-bold">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+</div>
+<span class="font-label-sm text-label-sm font-medium text-secondary">Verified</span>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 py-2 rounded-lg bg-surface-container text-primary font-label-md text-label-md font-semibold flex items-center justify-center gap-1 hover:bg-surface-container-high transition-colors" type="button">
+<span>Inspect Detailed Audit Timeline &amp; Photos</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Community Notice & Society Announcements -->
+<section class="px-margin-mobile pt-space-lg">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">campaign</span>
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Community Board</h2>
+</div>
+<button class="font-label-md text-label-md text-primary font-semibold hover:underline" type="button">All Circulars</button>
+</div>
+<!-- Official Notice Card -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-3">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">water_drop</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-semibold">Maintenance Advisory</span>
+<span class="font-body-sm text-body-sm text-secondary ml-1">• Management Office</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-medium">1 hr ago</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Annual Overhead Water Tank Cleaning &amp; Sensor Calibration</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-1 leading-relaxed">
+          Towers B &amp; C overhead storage tanks will be cleaned on Saturday between 10:00 AM and 2:00 PM. High-pressure pump supplies will switch to ground reserve. Please store emergency drinking water if required.
+        </p>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-surface-container-low text-secondary">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1 font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
+            Acknowledged by 142 Residents
+          </span>
+</div>
+<button class="font-label-sm text-label-sm font-semibold text-primary flex items-center gap-0.5" type="button">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+          Circular PDF
+        </button>
+</div>
+</div>
+</section>
+<!-- Quick Society Amenity Status Card -->
+<section class="px-margin-mobile pt-space-lg">
+<div class="flex items-center justify-between mb-space-xs">
+<h2 class="font-title-md text-title-md text-on-surface font-bold">Live Society Vitals</h2>
+<span class="font-label-sm text-label-sm text-secondary">Updated 5 min ago</span>
+</div>
+<div class="grid grid-cols-3 gap-gutter-mobile">
+<div class="p-3 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-[24px]">electric_meter</span>
+<span class="font-body-sm text-body-sm text-secondary mt-1">Grid Power</span>
+<span class="font-title-md text-title-md text-on-surface font-bold mt-0.5">BESCOM</span>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold">Stable (234V)</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-[24px]">water_pump</span>
+<span class="font-body-sm text-body-sm text-secondary mt-1">Water Storage</span>
+<span class="font-title-md text-title-md text-on-surface font-bold mt-0.5">84%</span>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold">Treated + Ro</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-[24px]">elevator</span>
+<span class="font-body-sm text-body-sm text-secondary mt-1">Tower B Lifts</span>
+<span class="font-title-md text-title-md text-on-surface font-bold mt-0.5">4 / 4</span>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold">All Active</span>
+</div>
+</div>
+</section>
+<!-- Society Security Contacts & Quick Help Strip -->
+<section class="px-margin-mobile pt-space-lg pb-space-md">
+<div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">support_agent</span>
+<span class="font-label-sm text-label-sm text-on-surface font-bold uppercase tracking-wider">Direct Gate &amp; Emergency Dial</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">24x7 Ready</span>
+</div>
+<div class="flex items-center gap-space-xs overflow-x-auto no-scrollbar py-0.5">
+<a class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest shadow-sm shrink-0 active:bg-surface-container-high transition-colors" href="tel:101">
+<span class="material-symbols-outlined text-primary text-[16px]">shield</span>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Main Gate (Ext 101)</span>
+</a>
+<a class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-lowest shadow-sm shrink-0 active:bg-surface-container-high transition-colors" href="tel:102">
+<span class="material-symbols-outlined text-primary text-[16px]">badge</span>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Facility Mgr</span>
+</a>
+<a class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-error-container text-on-error-container shrink-0 active:opacity-90 transition-opacity" href="tel:108">
+<span class="material-symbols-outlined text-error text-[16px]">local_hospital</span>
+<span class="font-label-sm text-label-sm font-bold text-on-error-container">Medical Desk</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Interactive Script for Quick Approvals -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small celebratory interaction on clicking quick-approval buttons
+      const actionButtons = document.querySelectorAll('button');
+      actionButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (btn.innerText.includes('Allow Entry')) {
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">done</span> Approved';
+            btn.classList.remove('bg-primary-container');
+            btn.classList.add('bg-tertiary-container');
+            setTimeout(() => {
+              const card = btn.closest('.relative.bg-surface-container-lowest');
+              if (card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0.4';
+                card.style.transform = 'scale(0.98)';
+              }
+            }, 600);
+          }
+        });
+      });
+    });
+  </script>
+</div></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.05)]" data-active-classes="[&amp;&gt;div]:bg-secondary-container text-on-surface font-semibold"><div class="flex items-center justify-around h-20 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center gap-1 min-w-[4rem] min-h-[44px] py-1 transition-all [&amp;&gt;div]:bg-secondary-container text-on-surface font-semibold" data-path="home" href="#"><div class="w-16 h-8 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[24px]">home</span></div><span class="font-label-sm text-label-sm">Home</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[4rem] min-h-[44px] py-1 text-secondary transition-all" data-path="services" href="#"><div class="w-16 h-8 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[24px]">build</span></div><span class="font-label-sm text-label-sm">Services</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[4rem] min-h-[44px] py-1 text-secondary transition-all" data-path="community" href="#"><div class="w-16 h-8 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[24px]">forum</span></div><span class="font-label-sm text-label-sm">Community</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[4rem] min-h-[44px] py-1 text-secondary transition-all" data-path="gatepass" href="#"><div class="w-16 h-8 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[24px]">verified_user</span></div><span class="font-label-sm text-label-sm">Gatepass</span></a><a class="flex flex-col items-center justify-center gap-1 min-w-[4rem] min-h-[44px] py-1 text-secondary transition-all" data-path="profile" href="#"><div class="w-16 h-8 rounded-full flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[24px]">account_circle</span></div><span class="font-label-sm text-label-sm">Profile</span></a></div></nav></body></html>

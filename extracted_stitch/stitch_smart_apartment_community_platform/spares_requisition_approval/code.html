@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary-fixed": "#002113", "on-primary-container": "#eeefff", "surface-container-lowest": "#ffffff", "surface": "#f8f9ff", "surface-variant": "#d3e4fe", "primary-container": "#2563eb", "tertiary-fixed-dim": "#4edea3", "on-primary": "#ffffff", "surface-container": "#e5eeff", "on-primary-fixed-variant": "#003ea8", "on-tertiary-container": "#bdffdb", "on-secondary-fixed-variant": "#3f465c", "error-container": "#ffdad6", "on-surface": "#0b1c30", "on-background": "#0b1c30", "surface-container-highest": "#d3e4fe", "tertiary-fixed": "#6ffbbe", "secondary": "#565e74", "surface-container-high": "#dce9ff", "primary-fixed": "#dbe1ff", "error": "#ba1a1a", "surface-dim": "#cbdbf5", "on-error-container": "#93000a", "background": "#f8f9ff", "primary-fixed-dim": "#b4c5ff", "secondary-fixed-dim": "#bec6e0", "on-surface-variant": "#434655", "on-tertiary": "#ffffff", "surface-bright": "#f8f9ff", "primary": "#004ac6", "on-secondary": "#ffffff", "on-tertiary-fixed-variant": "#005236", "tertiary-container": "#007d55", "secondary-fixed": "#dae2fd", "surface-tint": "#0053db", "inverse-surface": "#213145", "inverse-on-surface": "#eaf1ff", "secondary-container": "#dae2fd", "surface-container-low": "#eff4ff", "on-secondary-fixed": "#131b2e", "tertiary": "#006242", "on-error": "#ffffff", "on-primary-fixed": "#00174b", "on-secondary-container": "#5c647a", "outline": "#737686", "outline-variant": "#c3c6d7", "inverse-primary": "#b4c5ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-md": "1rem", "space-xs": "0.25rem", "gutter-mobile": "0.75rem", "margin-mobile": "1rem", "margin": "1.5rem", "gutter": "1.5rem", "space-lg": "1.5rem", "space-xl": "2rem" }, "fontFamily": { "headline-sm": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-md": ["Inter"], "headline-md": ["Plus Jakarta Sans"], "body-sm": ["Inter"], "headline-lg": ["Plus Jakarta Sans"], "label-sm": ["Inter"], "label-lg": ["Inter"], "label-md": ["Inter"], "title-lg": ["Inter"], "title-md": ["Inter"], "display-lg-mobile": ["Plus Jakarta Sans"], "display-lg": ["Plus Jakarta Sans"], "body-lg": ["Inter"] }, "fontSize": { "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.005em", "fontWeight": "600" }], "headline-lg-mobile": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["0.875rem", { "lineHeight": "1.375rem", "fontWeight": "400" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["0.75rem", { "lineHeight": "1.125rem", "fontWeight": "400" }], "headline-lg": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "600" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "fontWeight": "600" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }], "display-lg-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col h-full overflow-y-auto"><div class="h-16 px-space-md flex items-center gap-space-sm bg-surface-container-lowest"><div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-on-primary"><span class="material-symbols-outlined text-[20px]">apartment</span></div><div class="flex flex-col min-w-0"><span class="font-title-md text-title-md text-on-surface truncate leading-tight">Green Valley</span><span class="font-label-sm text-label-sm text-secondary truncate">Operations Console</span></div></div><div class="px-space-sm py-space-sm"><div class="bg-surface-container-low rounded-lg p-space-sm"><div class="flex items-center justify-between mb-1"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Shift</span><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span></div><p class="font-title-md text-label-md text-on-surface">Morning Shift</p><p class="font-body-sm text-body-sm text-on-surface-variant">06:00 - 14:00 | Today</p></div></div><nav class="flex-1 px-space-sm py-space-xs space-y-space-md" data-active-classes="bg-primary-container text-on-primary font-title-md rounded-lg"><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Command Center</div><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="overview" href="#">Overview</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="complaint-operations" href="#">Complaint Operations</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="recurrence-review" href="#">Recurrence Review</a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Intelligence</div><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="memory-graph" href="#">Memory Graph</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="reliability-radar" href="#">Reliability Radar</a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Asset &amp; Maintenance</div><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="work-order-management-and-inventory-fulfillment" href="#">Work Orders</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="spares-requisition-and-approval" href="#">Spares Requisition &amp; Approval</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="asset-register-and-spares" href="#">Asset Register &amp; Spares</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="spares-and-inventory" href="#">Spares &amp; Inventory</a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Community</div><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="residents-and-units-management-directory" href="#">Residents &amp; Units</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="security-access" href="#">Security &amp; Access</a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Governance</div><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="audit-logs" href="#">Audit &amp; Logs</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-md text-body-md" data-path="settings" href="#">Settings</a></div></nav></div><div class="p-space-sm bg-surface-container-lowest"><div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0 flex-1"><span class="font-title-md text-label-md text-on-surface truncate">Suresh Patel</span><span class="font-label-sm text-label-sm text-secondary truncate">Estate Lead</span></div><span class="material-symbols-outlined text-on-surface-variant text-[18px]">more_vert</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg bg-surface-container-lowest shadow-[0_1px_3px_rgba(0,0,0,0.05)]"><span class="material-symbols-outlined text-primary text-[20px]">domain</span><div class="flex flex-col text-left"><span class="font-title-md text-label-md text-on-surface leading-tight">Green Valley Residency</span><span class="font-label-sm text-label-sm text-secondary leading-tight">480 Units</span></div><span class="material-symbols-outlined text-on-surface-variant text-[18px] ml-1">expand_more</span></div><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-outline text-[20px]">search</span><input class="w-80 h-10 pl-10 pr-space-md rounded-lg bg-surface-container-lowest font-body-sm text-body-sm text-on-surface placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_3px_rgba(0,0,0,0.05)]" placeholder="Search unit, ticket, resident, staff (/) ..." type="text"/></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container"><span class="material-symbols-outlined text-[16px] text-error">emergency_home</span><span class="font-label-sm text-label-sm font-semibold">3 Urgent Alerts</span></div><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container"><span class="material-symbols-outlined text-[16px]">crisis_alert</span><span class="font-label-sm text-label-sm font-semibold">5 Gate Clearances</span></div></div><div class="h-6 w-px bg-outline-variant"></div><button class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[22px]">help_outline</span></button><div class="flex items-center gap-space-sm pl-2"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full text-on-surface">
+<!-- TOP CONSOLE CONTROL & TITLE BAR -->
+<section class="flex flex-col gap-4 mb-6">
+<!-- Breadcrumb & System Health Pill -->
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2 font-label-md text-label-md text-secondary">
+<span>Command Center</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Asset &amp; Maintenance</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-semibold">Spares Requisition &amp; Approval</span>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-tertiary font-semibold shadow-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-container animate-ping"></span>
+          STORES-LINKED LIVE (B2 CENTRAL)
+        </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-primary font-semibold shadow-sm">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+          ZERO-NEGATIVE-STOCK ENFORCED
+        </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-secondary font-semibold">
+<span class="material-symbols-outlined text-[14px]">verified_user</span>
+          DUAL-AUTH COMPLIANT
+        </span>
+</div>
+</div>
+<!-- Main Title & Operational Actions -->
+<div class="flex flex-wrap items-start justify-between gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          Spares Requisition &amp; Approval Console
+        </h1>
+<p class="font-body-md text-body-md text-secondary mt-1">
+          Interlocked Field Requisitions, Real-Time Basement B2 Inventory Reservation &amp; Dual-Role Authorization Governance
+        </p>
+</div>
+<div class="flex flex-wrap items-center gap-2.5">
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container-lowest text-on-surface-variant font-label-lg text-label-lg shadow-sm hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+          Export Dossier (CSV/PDF)
+        </button>
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-container transition-all" onclick="document.getElementById('tech-submission-drawer').classList.toggle('hidden')">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+          New Requisition (+)
+        </button>
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container-highest text-on-surface font-label-lg text-label-lg shadow-sm hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[18px]">warehouse</span>
+          Storekeeper Dispatch Queue
+          <span class="px-1.5 py-0.5 rounded-full bg-primary text-on-primary text-[10px] font-bold">3</span>
+</button>
+</div>
+</div>
+</section>
+<!-- OPERATIONAL KPI METRICS STRIP -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-6">
+<!-- KPI 1 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Active Requisitions</span>
+<span class="material-symbols-outlined text-primary text-[20px]">assignment</span>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">8 Open</span>
+<span class="font-body-sm text-body-sm text-primary font-semibold">₹42,650</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-1">5 Under Review • 3 Staged Dispatch</p>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full" style="width: 62%"></div>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Reservation Pool (B2)</span>
+<span class="material-symbols-outlined text-tertiary-container text-[20px]">layers</span>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">240 Units</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold px-1.5 py-0.5 bg-surface-container rounded">Locked</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Across 6 WOs • 0 Hash Duplicates</p>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
+<div class="bg-tertiary-container h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Zero-Negative Gate</span>
+<span class="material-symbols-outlined text-tertiary text-[20px]">verified</span>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md font-bold text-tertiary">100%</span>
+<span class="font-body-sm text-body-sm text-secondary">Compliant</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-1">2 PRs Auto-Suggested for Stock Dip</p>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
+<div class="bg-tertiary h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Dual Sign-Off (&gt;₹10k)</span>
+<span class="material-symbols-outlined text-error text-[20px]">enhanced_encryption</span>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">2 Reqs</span>
+<span class="font-label-sm text-label-sm text-error bg-error-container text-on-error-container px-1.5 py-0.5 rounded font-bold">Action Needed</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-1">Pending MC OTP + Estate Lead Token</p>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
+<div class="bg-error h-1.5 rounded-full" style="width: 40%"></div>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Approval Turnaround</span>
+<span class="material-symbols-outlined text-primary text-[20px]">timer</span>
+</div>
+<div class="mt-2">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">18m Avg</span>
+<span class="font-body-sm text-body-sm text-secondary">(&lt;30m Target)</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-1">98.4% Dispatch SLA Maintained</p>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-3 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+</div>
+</section>
+<!-- VIEW TOGGLE & FILTER TOOLBAR -->
+<section class="p-3.5 bg-surface-container-lowest rounded-xl shadow-sm mb-5 flex flex-col gap-3.5">
+<div class="flex flex-wrap items-center justify-between gap-3">
+<!-- Tabs Switcher -->
+<div class="flex items-center p-1 bg-surface-container-low rounded-lg">
+<button class="px-4 py-1.5 rounded-md bg-surface-container-lowest text-primary font-title-md text-label-lg shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+          Management Approval &amp; Review Console
+          <span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary text-[11px] font-bold">8 Pending</span>
+</button>
+<button class="px-4 py-1.5 rounded-md text-secondary hover:text-on-surface font-title-md text-label-lg transition-colors flex items-center gap-2" onclick="document.getElementById('tech-submission-drawer').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[18px]">handyman</span>
+          Technician Requisition Submission Form (Field Crew)
+        </button>
+</div>
+<!-- Quick Status Badges Filter -->
+<div class="flex flex-wrap items-center gap-2">
+<button class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-semibold shadow-xs">
+          All Requests (8)
+        </button>
+<button class="px-3 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container-high transition-colors">
+          Requires Dual Sign-off (2)
+        </button>
+<button class="px-3 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container-high transition-colors">
+          Stock Critical / PR (2)
+        </button>
+<button class="px-3 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-surface-container-high transition-colors">
+          Ready for B2 Dispatch (3)
+        </button>
+</div>
+</div>
+<!-- Filter & Search Line -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-2">
+<!-- Search Input -->
+<div class="md:col-span-5 relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-secondary text-[20px]">search</span>
+<input class="w-full h-10 pl-10 pr-3 rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary shadow-xs" placeholder="Search #REQ-2024-..., WO-GVR-..., SKU, Asset, Tech Name..." type="text" value="#REQ-2024-192"/>
+</div>
+<!-- Dropdown 1: Status -->
+<div class="md:col-span-2">
+<select class="w-full h-10 px-3 rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+<option selected="">All Statuses</option>
+<option>Pending Management Review</option>
+<option>Approved - Reserved</option>
+<option>Dispatched to Crew</option>
+<option>Dual Sign-Off Pending</option>
+<option>Rejected</option>
+</select>
+</div>
+<!-- Dropdown 2: Urgency -->
+<div class="md:col-span-2">
+<select class="w-full h-10 px-3 rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+<option selected="">All Urgencies</option>
+<option>Critical / Emergency</option>
+<option>High Priority</option>
+<option>Routine Maintenance</option>
+</select>
+</div>
+<!-- Dropdown 3: Department -->
+<div class="md:col-span-3 flex items-center gap-2">
+<select class="w-full h-10 px-3 rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+<option selected="">Plumbing &amp; MEP Services</option>
+<option>Electrical &amp; DG Backup</option>
+<option>Elevators &amp; Vertical Mobility</option>
+<option>HVAC &amp; Central Chillers</option>
+</select>
+<button class="p-2 rounded-lg bg-surface-container text-secondary hover:text-on-surface" title="Reset Filters">
+<span class="material-symbols-outlined text-[20px]">filter_alt_off</span>
+</button>
+</div>
+</div>
+</section>
+<!-- COLLAPSIBLE TECHNICIAN SUBMISSION DRAWER / MODAL SIMULATION -->
+<section class="hidden mb-6 p-5 rounded-2xl bg-surface-container-low shadow-md transition-all duration-300" id="tech-submission-drawer">
+<div class="flex items-center justify-between pb-3 mb-4">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[18px]">build</span>
+</div>
+<div>
+<h2 class="font-title-lg text-title-lg text-on-surface font-semibold">Field Technician Requisition Submission Drafter</h2>
+<p class="font-body-sm text-body-sm text-secondary">Logged in as Lead MEP Ramesh Kumar (#EMP-411) • Auto-binding active Work Orders</p>
+</div>
+</div>
+<button class="p-1 rounded-lg text-secondary hover:bg-surface-container-high" onclick="document.getElementById('tech-submission-drawer').classList.add('hidden')">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div>
+<label class="block font-label-sm text-label-sm uppercase tracking-wider text-secondary mb-1">Target Work Order</label>
+<select class="w-full h-10 px-3 rounded-lg bg-surface-container-lowest font-body-sm text-body-sm text-on-surface shadow-xs focus:ring-2 focus:ring-primary">
+<option>#WO-GVR-2024-884 - Tower B Shaft 4 Leakage</option>
+<option>#WO-GVR-2024-891 - DG-02 Surge Stabilizer</option>
+<option>#WO-GVR-2024-879 - Otis Lift Car 2 Diode</option>
+</select>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm uppercase tracking-wider text-secondary mb-1">Select SKU / Spare Name</label>
+<div class="relative">
+<input class="w-full h-10 pl-3 pr-24 rounded-lg bg-surface-container-lowest font-body-sm text-body-sm text-on-surface shadow-xs focus:ring-2 focus:ring-primary" value="25mm Heavy Brass CPVC Coupler"/>
+<span class="absolute right-2 top-2 px-1.5 py-0.5 rounded bg-surface-container text-tertiary font-label-sm text-[10px] font-bold">14 in B2</span>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm uppercase tracking-wider text-secondary mb-1">Quantity Requested (Units)</label>
+<div class="flex items-center">
+<button class="w-10 h-10 rounded-l-lg bg-surface-container text-on-surface font-bold hover:bg-surface-container-high">-</button>
+<input class="w-16 h-10 text-center bg-surface-container-lowest font-title-md text-title-md font-bold focus:outline-none" value="2"/>
+<button class="w-10 h-10 rounded-r-lg bg-surface-container text-on-surface font-bold hover:bg-surface-container-high">+</button>
+<span class="ml-2 font-label-sm text-label-sm text-tertiary">✓ Available (Max 14)</span>
+</div>
+</div>
+<div class="flex items-end gap-2">
+<button class="flex-1 h-10 px-4 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg shadow-sm hover:bg-primary-container font-semibold flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">send</span>
+          Transmit Requisition
+        </button>
+<button class="h-10 px-3 rounded-lg bg-surface-container text-secondary font-label-md text-label-md hover:bg-surface-container-high" title="Attach Acoustic Log or Fracture Photo">
+<span class="material-symbols-outlined text-[20px]">attachment</span>
+</button>
+</div>
+</div>
+</section>
+<!-- SPLIT WORKSPACE: 56% QUEUE / 44% DOSSIER DEEP DIVE -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-8">
+<!-- LEFT COLUMN: REQUISITION QUEUE REGISTER (56% / col-span-7) -->
+<div class="lg:col-span-7 flex flex-col gap-3">
+<!-- Section Title & Counter -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Active Requisition Stream</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-bold">8 Total</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary">Basement Stores Socket: Live Active</span>
+</div>
+<!-- Card 1: SELECTED ACTIVE ITEM (#REQ-2024-192) -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-md relative overflow-hidden transition-all duration-200 cursor-pointer">
+<!-- Blue Accent Left Indicator -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+<div class="flex flex-col gap-2.5 pl-1.5">
+<!-- Card Header & Status -->
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-title-md font-bold text-primary">#REQ-2024-192</span>
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">emergency</span>
+                Critical Priority
+              </span>
+<span class="font-label-sm text-label-sm text-secondary">10:14 IST</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-title-md font-bold text-on-surface">₹960</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-[11px] font-bold">
+                2 Units
+              </span>
+</div>
+</div>
+<!-- Linked WO & Asset Details -->
+<div class="bg-surface-container-low p-2.5 rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between text-body-sm font-body-sm">
+<span class="font-semibold text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">assignment_turned_in</span>
+                Linked WO: #WO-GVR-2024-884
+              </span>
+<span class="text-secondary">Tower B, Service Shaft 4 (Flat B-402)</span>
+</div>
+<div class="text-body-sm font-body-sm text-secondary flex items-center justify-between">
+<span class="truncate">Asset: Shaft #4 CPVC Vertical Riser (#AST-CPVC-04)</span>
+<span class="text-on-surface font-medium">Tech: Ramesh Kumar (Lead MEP)</span>
+</div>
+</div>
+<!-- SKU Requested & Live Stock Match Bar -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-bold text-[11px]">
+                CP
+              </div>
+<div>
+<p class="font-label-lg text-label-lg font-bold text-on-surface">25mm Heavy Brass CPVC Coupler (Class 4)</p>
+<p class="font-body-sm text-[11px] text-secondary">SKU #SP-PLM-CP25 • Location: Bin B2-PL-04</p>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-tertiary font-label-sm text-label-sm font-bold">
+<span class="material-symbols-outlined text-[14px]">inventory_2</span>
+                14 In Stock (Safe)
+              </span>
+<p class="font-label-sm text-[11px] text-primary font-semibold mt-0.5">Pending Management Sign-off</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: #REQ-2024-190 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all duration-150 cursor-pointer">
+<div class="flex flex-col gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">#REQ-2024-190</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-[11px] font-bold">
+                Routine DG PM
+              </span>
+<span class="font-label-sm text-label-sm text-secondary">09:42 IST</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">₹5,550</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-tertiary font-label-sm text-[11px] font-bold">
+                Approved &amp; Reserved
+              </span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span>WO: #WO-GVR-2024-891 • 500kVA DG-02 Surge Check</span>
+<span>Tech: Sunil V. (Electrical)</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-body-sm text-body-sm text-on-surface">3x DG Diesel Fuel Filter Elements (#SP-ELE-FL02)</span>
+<span class="font-label-sm text-label-sm text-secondary">Staged in Bin B2-EL-09</span>
+</div>
+</div>
+</div>
+<!-- Card 3: #REQ-2024-189 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all duration-150 cursor-pointer">
+<div class="flex flex-col gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">#REQ-2024-189</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-[11px] font-bold">
+                High Priority
+              </span>
+<span class="font-label-sm text-label-sm text-secondary">08:50 IST</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">₹8,800</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold">
+                Dual Sign-Off Pending
+              </span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span>WO: #WO-GVR-2024-879 • Otis Lift Passenger B2 Drift</span>
+<span>Tech: Harish N. (Otis OEM)</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-body-sm text-body-sm text-on-surface">1x Optical Curtain Diode Bracket (#SP-LFT-OS01)</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Requires MC Treasurer OTP</span>
+</div>
+</div>
+</div>
+<!-- Card 4: #REQ-2024-188 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all duration-150 cursor-pointer">
+<div class="flex flex-col gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">#REQ-2024-188</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-secondary font-label-sm text-[11px] font-bold">
+                Scheduled
+              </span>
+<span class="font-label-sm text-label-sm text-secondary">Yesterday</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">₹3,200</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container text-secondary font-label-sm text-[11px] font-bold">
+                Dispatched to Crew
+              </span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span>WO: #WO-GVR-2024-865 • Intercom Core Matrix Patch</span>
+<span>Tech: Anil D. (Telecom)</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-body-sm text-body-sm text-on-surface">100m Cat6 Armored Outdoor Cable Reel</span>
+<span class="font-label-sm text-label-sm text-secondary">Handed over by M. Nair</span>
+</div>
+</div>
+</div>
+<!-- Card 5: #REQ-2024-185 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm hover:bg-surface-container-low transition-all duration-150 cursor-pointer">
+<div class="flex flex-col gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-on-surface">#REQ-2024-185</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-error font-label-sm text-[11px] font-bold">
+                Rejected
+              </span>
+<span class="font-label-sm text-label-sm text-secondary">2 Days Ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-secondary line-through">₹4,200</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-[11px] font-bold">
+                Spec Mismatch
+              </span>
+</div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span>WO: #WO-GVR-2024-850 • Clubhouse Pool Pump Seal</span>
+<span>Tech: Mukesh S.</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-body-sm text-body-sm text-secondary">1x Silicon Carbide Mechanical Seal 32mm</span>
+<span class="font-label-sm text-label-sm text-error">Replaced with OEM AMC Claim</span>
+</div>
+</div>
+</div>
+<!-- Bottom Stream Summary -->
+<div class="p-3 bg-surface-container-low rounded-xl flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span>Showing 1-5 of 8 Requisitions • Filter: Plumbing &amp; MEP</span>
+<div class="flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-lowest text-on-surface shadow-xs font-label-sm">Prev</button>
+<span class="px-2 font-bold text-on-surface">1</span>
+<button class="px-2 py-1 rounded bg-surface-container-lowest text-on-surface shadow-xs font-label-sm">Next</button>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: DETAILED DEEP DIVE DOSSIER (44% / col-span-5) -->
+<div class="lg:col-span-5 flex flex-col gap-4">
+<!-- Dossier Main Container -->
+<div class="p-5 rounded-2xl bg-surface-container-lowest shadow-md flex flex-col gap-4">
+<!-- Dossier Header & Badge Bar -->
+<div class="flex flex-col gap-2 pb-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">#REQ-2024-192</span>
+<span class="px-2.5 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold">
+                CRITICAL EMERGENCY
+              </span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Submitted 10:14 IST</span>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span class="text-primary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">link</span>
+              Work Order Link: #WO-GVR-2024-884
+            </span>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded">Budget: PM Capex</span>
+</div>
+</div>
+<!-- Field Technician & Acoustic Fault Context -->
+<div class="p-3.5 rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary font-bold flex items-center justify-center text-sm">
+                RK
+              </div>
+<div>
+<p class="font-title-md text-label-lg font-bold text-on-surface">Ramesh Kumar</p>
+<p class="font-body-sm text-body-sm text-secondary">Lead MEP Specialist (ID #EMP-411)</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded bg-surface-container-lowest text-tertiary font-label-sm text-label-sm font-bold">
+              Shift Lead Verified
+            </span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface mt-1">
+<span class="font-bold text-secondary uppercase tracking-wider text-[11px] block mb-0.5">Asset Context &amp; Fault Justification</span>
+<p class="text-on-surface bg-surface-container-lowest p-2 rounded-lg leading-relaxed">
+              “Urgent replacement of fractured solvent-welded coupler due to 4.8 Bar pressure transient surge. Two heavy brass Class-4 compression couplers needed immediately to restore domestic water supply to Flats B-401 to B-408.”
+            </p>
+</div>
+</div>
+<!-- Visual Proof & Diagnostic Photo Attachment Hash -->
+<div class="p-3 rounded-xl bg-surface-container-low flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<div class="w-12 h-12 rounded-lg overflow-hidden relative shadow-sm flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High resolution close-up photograph of a fractured CPVC water pipe joint in a dark service shaft of a modern apartment complex, showing water droplets and brass fitting replacement" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE8F6AbHft9af6xsmDgV-zwX4PGrJMnfZoLuWcjPPoQOHMs1d7UtoRejqx09M89zB1aoB-BSVklaSJaThaV7Nvjh5baSpUYt5TS8wMnb0mtn0GlVcOC90V0yW2zF6awovO5AOcjh8Q1GIBeXsZ1btVOVKOXtH2Sk6mD4YAMNG5sESKF4rwGv91URMQzmfo152SsKLeWhKpuebzV1QkSc-m54pR22d4812ild7wtHg"/>
+</div>
+<div>
+<p class="font-label-lg text-label-lg font-bold text-on-surface">shaft4_coupler_rupture.heic</p>
+<p class="font-body-sm text-body-sm text-secondary">Acoustic leak log #AC-992 • 4.8 Bar peak surge</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-tertiary text-[20px]" title="Cryptographically verified file hash">verified</span>
+</div>
+<!-- Requested Item & Real-Time Stores Inventory Validation -->
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Requested Spare Part</span>
+<h3 class="font-title-lg text-title-lg font-bold text-on-surface mt-0.5">
+                25mm Heavy Brass CPVC Coupler (Class 4)
+              </h3>
+<p class="font-body-sm text-body-sm text-secondary">SKU: #SP-PLM-CP25 • Basement 2 Stores (Bin B2-PL-04)</p>
+</div>
+<div class="text-right">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">₹960</span>
+<p class="font-body-sm text-body-sm text-secondary">₹480 / unit</p>
+</div>
+</div>
+<!-- Stock Level Breakdown Gauge -->
+<div class="grid grid-cols-4 gap-2 pt-1">
+<div class="p-2 rounded-lg bg-surface-container-lowest text-center">
+<span class="font-label-sm text-[10px] text-secondary uppercase block">Available Free</span>
+<span class="font-title-md text-title-md font-bold text-tertiary">14</span>
+</div>
+<div class="p-2 rounded-lg bg-surface-container-lowest text-center">
+<span class="font-label-sm text-[10px] text-secondary uppercase block">Existing Locked</span>
+<span class="font-title-md text-title-md font-bold text-secondary">6</span>
+</div>
+<div class="p-2 rounded-lg bg-surface-container-lowest text-center">
+<span class="font-label-sm text-[10px] text-secondary uppercase block">Requested Qty</span>
+<span class="font-title-md text-title-md font-bold text-primary">2</span>
+</div>
+<div class="p-2 rounded-lg bg-surface-container-lowest text-center">
+<span class="font-label-sm text-[10px] text-secondary uppercase block">Post-Res. Stock</span>
+<span class="font-title-md text-title-md font-bold text-on-surface">12</span>
+</div>
+</div>
+<!-- Policy Rule Check Pill -->
+<div class="p-2.5 rounded-lg bg-surface-container-highest flex items-center gap-2 text-body-sm font-body-sm text-on-surface">
+<span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+<span><strong>Rule Check:</strong> Stock buffer post-reservation (12) &gt; Minimum Threshold (8). Safe to lock.</span>
+</div>
+</div>
+<!-- Alternative Spare Parts Advisory -->
+<div class="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Compatible Alternative Advisory</span>
+<span class="font-label-sm text-label-sm text-secondary">AI Cross-Ref</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">
+            Alternative SKU <strong>#SP-PLM-CP25-PVC</strong> (Schedule 80 PVC Coupler, Stock: 24 units, ₹190/unit) exists in stores, but is <em>not recommended</em> for dynamic high-pressure riser lines &gt; 3.5 Bar. Lead MEP correctly designated Heavy Brass Class 4.
+          </p>
+</div>
+<!-- Purchase Requisition (PR) Contingency Sub-block -->
+<div class="p-3 rounded-xl bg-surface-container flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">autorenew</span>
+<span class="text-on-surface">Automated PR Trigger: <strong>#PR-2024-119</strong> queued for reorder at 8 units.</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Vendor: Astral Pipes</span>
+</div>
+<!-- Decision Console: Approval / Rejection CTA Cluster -->
+<div class="flex flex-col gap-2 pt-2">
+<!-- Primary Approval Button -->
+<button class="w-full py-3 px-4 rounded-xl bg-primary text-on-primary font-title-md text-title-md font-bold shadow-md hover:bg-primary-container transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+            Approve Requisition &amp; Lock Stock (Estate Lead)
+          </button>
+<!-- Dual Sign-off or Rejection Row -->
+<div class="grid grid-cols-2 gap-2">
+<button class="py-2.5 px-3 rounded-lg bg-surface-container-high text-error font-label-lg text-label-lg font-semibold hover:bg-error-container hover:text-on-error-container transition-colors flex items-center justify-center gap-1.5" onclick="document.getElementById('reject-modal-safeguard').classList.toggle('hidden')">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+              Reject Requisition
+            </button>
+<button class="py-2.5 px-3 rounded-lg bg-surface-container-high text-on-surface font-label-lg text-label-lg font-semibold hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">shield_with_heart</span>
+              Escalate to MC Treasurer
+            </button>
+</div>
+</div>
+<!-- Mandatory Structured Rejection Safeguard Modal/Inline Section -->
+<div class="hidden p-3.5 rounded-xl bg-error-container text-on-error-container flex flex-col gap-2.5" id="reject-modal-safeguard">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold tracking-wider">Mandatory Rejection Safeguard</span>
+<span class="material-symbols-outlined text-[16px]">security</span>
+</div>
+<p class="font-body-sm text-body-sm">
+            All requisition rejections require permanent technical justification logged in the CivicOps tamper-proof ledger.
+          </p>
+<select class="w-full h-9 px-2.5 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm">
+<option>Specification mismatch for riser operating pressure</option>
+<option>Quantity exceeds standard diagnostic requirement</option>
+<option>Part covered under active annual maintenance contract (AMC)</option>
+<option>Non-genuine manufacturer spec / unapproved vendor SKU</option>
+</select>
+<div class="flex justify-end gap-2 mt-1">
+<button class="px-3 py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm" onclick="document.getElementById('reject-modal-safeguard').classList.add('hidden')">
+              Cancel
+            </button>
+<button class="px-3 py-1 rounded bg-error text-on-error font-label-sm text-label-sm font-bold">
+              Confirm &amp; Log Rejection
+            </button>
+</div>
+</div>
+<!-- Stock Reservation Confirmation & Hash Token -->
+<div class="p-3 rounded-xl bg-surface-container-high flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-secondary">Reservation Token</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">STORES NOTIFIED</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm font-mono text-body-sm font-bold text-on-surface">#RES-GVR-884-25MM</span>
+<span class="font-body-sm text-body-sm text-secondary">Staging Bay: Basement B2 / Storekeeper: M. Nair</span>
+</div>
+</div>
+<!-- Immutable Audit Trail Chain -->
+<div class="flex flex-col gap-2 pt-2">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Immutable Requisition Audit Chain</span>
+<div class="space-y-2.5 pl-2">
+<div class="flex items-start gap-2.5">
+<span class="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></span>
+<div class="text-body-sm font-body-sm">
+<span class="font-bold text-on-surface">10:14 IST</span> — Ramesh Kumar submitted requisition #REQ-2024-192 with acoustic fault proof.
+              </div>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></span>
+<div class="text-body-sm font-body-sm">
+<span class="font-bold text-on-surface">10:15 IST</span> — CivicOps Inventory Engine verified physical stock in Bin B2-PL-04 (14 Free / 6 Locked).
+              </div>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="w-2 h-2 rounded-full bg-tertiary mt-1.5 flex-shrink-0"></span>
+<div class="text-body-sm font-body-sm">
+<span class="font-bold text-on-surface">10:18 IST</span> — Estate Lead Suresh Patel authorized reservation via 2FA biometric token.
+              </div>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="w-2 h-2 rounded-full bg-secondary mt-1.5 flex-shrink-0"></span>
+<div class="text-body-sm font-body-sm">
+<span class="font-bold text-on-surface">10:20 IST</span> — Basement B2 Storekeeper M. Nair scanned physical barcode and staged items for technician pickup.
+              </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- CONSOLE FOOTER STATUS BAR -->
+<footer class="mt-auto py-3 px-4 rounded-xl bg-surface-container-lowest shadow-sm flex flex-wrap items-center justify-between gap-3 text-body-sm font-body-sm text-secondary">
+<div class="flex flex-wrap items-center gap-4">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+        Basement -2 Stores Ledger: Synchronized (Hash sha256:4f8e...9a21)
+      </span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary">security</span>
+        Anti-Duplicate Reservation Engine: Active
+      </span>
+<span>•</span>
+<span>Current Shift Approver: <strong>Suresh Patel (Estate Lead)</strong></span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded">Green Valley Residency • CivicOps Console Build v4.12.8</span>
+<span class="text-primary font-bold">Stores Socket #4</span>
+</div>
+</footer>
+</div></main></div></body></html>

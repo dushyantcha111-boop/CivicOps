@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-primary": "#ffffff", "tertiary": "#006242", "primary": "#004ac6", "surface-container-highest": "#d3e4fe", "surface-dim": "#cbdbf5", "on-tertiary-fixed": "#002113", "on-error-container": "#93000a", "on-primary-fixed-variant": "#003ea8", "on-primary-fixed": "#00174b", "inverse-on-surface": "#eaf1ff", "on-secondary-fixed": "#131b2e", "on-surface": "#0b1c30", "outline": "#737686", "surface-container-low": "#eff4ff", "on-secondary-fixed-variant": "#3f465c", "error-container": "#ffdad6", "on-tertiary": "#ffffff", "surface-tint": "#0053db", "secondary-fixed": "#dae2fd", "error": "#ba1a1a", "surface-container-lowest": "#ffffff", "surface-container-high": "#dce9ff", "on-error": "#ffffff", "inverse-primary": "#b4c5ff", "secondary-fixed-dim": "#bec6e0", "primary-fixed": "#dbe1ff", "on-secondary-container": "#5c647a", "secondary-container": "#dae2fd", "inverse-surface": "#213145", "on-surface-variant": "#434655", "on-secondary": "#ffffff", "tertiary-fixed-dim": "#4edea3", "surface-bright": "#f8f9ff", "tertiary-container": "#007d55", "on-tertiary-container": "#bdffdb", "surface-container": "#e5eeff", "background": "#f8f9ff", "primary-container": "#2563eb", "on-background": "#0b1c30", "secondary": "#565e74", "primary-fixed-dim": "#b4c5ff", "on-tertiary-fixed-variant": "#005236", "on-primary-container": "#eeefff", "surface": "#f8f9ff", "tertiary-fixed": "#6ffbbe", "outline-variant": "#c3c6d7", "surface-variant": "#d3e4fe" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "gutter": "1.5rem", "space-xl": "2rem", "margin": "1.5rem", "gutter-mobile": "0.75rem", "space-xs": "0.25rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "margin-mobile": "1rem", "space-md": "1rem" }, fontFamily: { "headline-md": ["Plus Jakarta Sans"], "body-md": ["Inter"], "label-md": ["Inter"], "body-sm": ["Inter"], "headline-lg": ["Plus Jakarta Sans"], "title-lg": ["Inter"], "headline-sm": ["Plus Jakarta Sans"], "body-lg": ["Inter"], "display-lg": ["Plus Jakarta Sans"], "label-sm": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Plus Jakarta Sans"], "title-md": ["Inter"], "display-lg-mobile": ["Plus Jakarta Sans"] }, fontSize: { "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-md": ["0.875rem", { "lineHeight": "1.375rem", "fontWeight": "400" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "body-sm": ["0.75rem", { "lineHeight": "1.125rem", "fontWeight": "400" }], "headline-lg": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "fontWeight": "600" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.005em", "fontWeight": "600" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "600" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "600" }], "headline-lg-mobile": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }], "display-lg-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-16 px-margin-mobile flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs min-w-0 flex-1"><button aria-label="Go back" class="w-11 h-11 flex items-center justify-center text-on-surface rounded-full active:bg-surface-container-high transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Work Order Details</h1></div><div class="flex items-center gap-space-xs shrink-0"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-safe bg-surface min-h-screen"><div class="flex flex-col w-full px-margin-mobile pb-space-xl gap-space-md">
+<!-- Offline Status Pill & SLA Top Bar -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-space-xs rounded-full">
+<div class="flex items-center gap-space-xs">
+<span class="inline-block w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Offline Queue Ready</span>
+</div>
+<div class="flex items-center gap-space-xs text-primary font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+<span>1h 45m left of 4h SLA</span>
+</div>
+</div>
+<!-- Ticket Identifier & State Header -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold bg-primary-fixed px-space-sm py-0.5 rounded-full">
+        #GVR-2024-884
+      </span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-primary-fixed-variant px-space-sm py-0.5 rounded-full font-semibold">
+        HIGH PRIORITY
+      </span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold leading-tight">
+      Water Seepage &amp; Conduit Leakage
+    </h2>
+<div class="flex items-start gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">location_on</span>
+<p class="font-body-sm text-body-sm">
+        Tower B • Floor 4 • Flat B-402 <span class="font-medium text-on-surface">(Master Bathroom Vertical Duct)</span>
+</p>
+</div>
+<!-- Active State Ribbon -->
+<div class="flex items-center gap-space-xs bg-tertiary-fixed/30 text-on-tertiary-fixed px-space-md py-space-sm rounded-lg mt-space-xs">
+<span class="material-symbols-outlined text-[20px] text-tertiary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider">
+        Assignment Accepted • Ready to Start Work
+      </span>
+</div>
+</div>
+<!-- Step Lifecycle Progress Tracker -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">Workflow Lifecycle</span>
+<span class="font-label-sm text-label-sm text-primary font-medium">Stage 3 of 6</span>
+</div>
+<!-- Visual Progress Nodes -->
+<div class="flex items-center justify-between relative py-2">
+<div class="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-1 bg-surface-container-high rounded-full -z-0"></div>
+<div class="absolute left-3 w-2/5 top-1/2 -translate-y-1/2 h-1 bg-tertiary rounded-full -z-0"></div>
+<!-- Step 1: Assigned (Done) -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Assigned</span>
+</div>
+<!-- Step 2: Accepted (Done) -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-sm">
+<span class="material-symbols-outlined text-[14px]">done</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Accepted</span>
+</div>
+<!-- Step 3: Inspection (Active) -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold shadow-md animate-pulse">
+          3
+        </div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Inspect</span>
+</div>
+<!-- Step 4: Work -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-label-sm">
+          4
+        </div>
+<span class="font-label-sm text-label-sm text-outline">Repair</span>
+</div>
+<!-- Step 5: Resolved -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-label-sm">
+          5
+        </div>
+<span class="font-label-sm text-label-sm text-outline">Resolve</span>
+</div>
+<!-- Step 6: Verified -->
+<div class="flex flex-col items-center gap-1 z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-label-sm text-label-sm">
+          6
+        </div>
+<span class="font-label-sm text-label-sm text-outline">Verify</span>
+</div>
+</div>
+</div>
+<!-- Primary Action Console (High-touch controls) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-xs">
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Action Console</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-0.5 rounded">Ramesh Kumar (Tech Lead)</span>
+</div>
+<!-- Big Action Button 1 -->
+<button class="w-full h-12 bg-primary hover:bg-primary-fixed-variant active:scale-[0.98] transition-all text-on-primary rounded-lg font-title-md text-title-md font-semibold flex items-center justify-center gap-space-xs shadow-md" id="btnStartWork">
+<span class="material-symbols-outlined text-[22px]">play_circle</span>
+<span>Start Work &amp; Timer</span>
+</button>
+<!-- Action Button 2 -->
+<button class="w-full h-11 bg-surface-container-low hover:bg-surface-container active:scale-[0.98] transition-all text-primary rounded-lg font-title-md text-title-md font-semibold flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px]">checklist</span>
+<span>Open Field Inspection Checklist</span>
+</button>
+<!-- Dual Row: Blocked & Reject -->
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<button class="h-10 bg-error-container text-on-error-container rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[18px]">report_problem</span>
+<span>Report Blocked</span>
+</button>
+<button class="h-10 bg-surface-container-high text-on-surface-variant rounded-lg font-label-md text-label-md font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+<span>Reassign...</span>
+</button>
+</div>
+</div>
+<!-- Resident & Location Details Card -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-fixed flex items-center justify-center font-bold text-title-md">
+          RS
+        </div>
+<div>
+<h4 class="font-title-md text-title-md text-on-surface font-bold">Rahul Sharma</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Owner • Resident in Flat B-402</p>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded-full text-on-surface">Ext: 402</span>
+</div>
+<!-- Communication Quick Triggers -->
+<div class="grid grid-cols-2 gap-space-sm pt-1">
+<a class="h-9 bg-surface-container-low hover:bg-surface-container rounded-lg flex items-center justify-center gap-2 text-primary font-label-md text-label-md font-semibold" href="tel:+919845000000">
+<span class="material-symbols-outlined text-[18px]">call</span>
+<span>+91 98450 ••••</span>
+</a>
+<button class="h-9 bg-surface-container-low hover:bg-surface-container rounded-lg flex items-center justify-center gap-2 text-primary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+<span>Society Chat</span>
+</button>
+</div>
+<!-- Resident Note Quote -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold uppercase">Resident Initial Note</span>
+<p class="font-body-sm text-body-sm text-on-surface italic">
+        “Continuous seep along upper skirting near vertical duct behind bathtub tile. Damp patch growing since morning.”
+      </p>
+</div>
+<!-- Attached Image Thumbnail -->
+<div class="flex items-center gap-space-sm pt-space-xs">
+<div class="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close-up photograph of wet water seepage stain expanding along tiled bathroom wall corner in modern apartment with moisture drops" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD-WO-oe1DTJsyQAbN5C5-WBs811qk4HdN2MvJTtAjK4z1DOt3V_WGpERUx70Y0PwI7Ck1W8hAyzHgWiST-krKE9uIQLNmkDJmIa8S7rY3FeIZABnhHjtA5wjjS7mIsQPtlRG0FEdIex1wtZKJ1cdYXnQusfCejv5Ld3DypglYIo9JDCx0cvjcUU7bS6os7BGP18l8Naxub2aR-n_eTuuZNbj-P0sqbuOCMtTWWnE"/>
+<div class="absolute inset-0 bg-on-surface/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-surface-container-lowest text-[18px]">zoom_in</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold truncate">Resident_Photo_01.jpg</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Uploaded Today, 09:18 AM</span>
+<button class="text-left font-label-sm text-label-sm text-primary font-medium hover:underline">Tap to inspect full view</button>
+</div>
+</div>
+</div>
+<!-- Asset & Historical Recurrence Card (Community Memory Graph) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">hub</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Asset Memory Link</h3>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded font-mono text-on-surface">#AST-CPVC-04</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-medium">Shaft #4 CPVC 25mm Wet Riser &amp; Booster Feeder</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Main feed pipe serving Flats B-301 through B-602</span>
+</div>
+<!-- Recurrence Hotspot Callout -->
+<div class="bg-error-container/60 p-space-sm rounded-lg flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">warning</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md text-on-error-container font-bold">Recurring Incident Hotspot</span>
+<p class="font-body-sm text-body-sm text-on-error-container">
+          2 previous leaks reported in this vertical shaft (July '24, Oct '24). Primary cause flagged: booster pump surge vibration.
+        </p>
+</div>
+</div>
+<button class="flex items-center justify-between text-primary font-label-md text-label-md font-semibold pt-1">
+<span>View Shaft #4 Incident History &amp; Schematics</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<!-- Spare Parts Requisition & Stock -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">inventory_2</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Spares Requisition</h3>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-fixed/40 text-on-tertiary-fixed font-semibold px-2 py-0.5 rounded-full">
+        Issued • Store B1
+      </span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between py-1 bg-surface-container-low px-space-sm rounded">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">1x 25mm CPVC Brass Female Coupler</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">In Kit</span>
+</div>
+<div class="flex items-center justify-between py-1 bg-surface-container-low px-space-sm rounded">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">2x Heavy Industrial Teflon Tape</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">In Kit</span>
+</div>
+<div class="flex items-center justify-between py-1 bg-surface-container-low px-space-sm rounded">
+<span class="font-body-sm text-body-sm text-on-surface font-medium">1x Shaft Isolator Ring Dampener</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">In Kit</span>
+</div>
+</div>
+<button class="w-full text-center text-primary font-label-md text-label-md font-semibold py-1">
+      + Request Additional Plumbing Spares
+    </button>
+</div>
+<!-- Field Work Log & Timeline -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">history_edu</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Field Work Log</h3>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">cloud_sync</span>
+<span>Auto-saved 10:14 AM</span>
+</div>
+</div>
+<!-- Quick Note Composer -->
+<div class="flex flex-col gap-space-xs bg-surface-container-low p-space-sm rounded-lg">
+<textarea class="w-full bg-surface-container-lowest rounded-lg p-space-sm font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none resize-none" id="workLogInput" placeholder="Record inspection finding, pressure reading, or pipe status..." rows="2"></textarea>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-space-xs">
+<button class="w-9 h-9 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center hover:bg-surface-container active:scale-95 transition-all" id="voiceMemoBtn" title="Record Voice Memo">
+<span class="material-symbols-outlined text-[18px]">mic</span>
+</button>
+<button class="w-9 h-9 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center hover:bg-surface-container active:scale-95 transition-all" title="Add Photo">
+<span class="material-symbols-outlined text-[18px]">photo_camera</span>
+</button>
+</div>
+<button class="h-9 px-space-md bg-primary text-on-primary rounded-lg font-label-md text-label-md font-semibold active:scale-95 transition-all" id="btnPostLog">
+          Log Entry
+        </button>
+</div>
+</div>
+<!-- Activity Feed Timeline -->
+<div class="flex flex-col gap-space-sm relative">
+<!-- Item 1 -->
+<div class="flex items-start gap-space-sm">
+<div class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-primary text-[16px]">directions_walk</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Ramesh Kumar (Plumber)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:30 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Accepted assignment. En-route from Gate 1 workshop with pressure gauge and CPVC tool kit.
+          </p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start gap-space-sm">
+<div class="w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-secondary text-[16px]">assignment_ind</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Suresh Patel (Estate Mgr)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:22 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Dispatched ticket with priority flag following resident escalation at helpdesk.
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Persistent Sync & Network Notice -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-space-sm rounded-xl">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[20px]">cloud_done</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Offline Sync Active</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">All inputs cached locally until reconnection</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">2 items synced</span>
+</div>
+</div>
+<script>
+  (function initActionConsole() {
+    const startBtn = document.getElementById('btnStartWork');
+    const voiceBtn = document.getElementById('voiceMemoBtn');
+    const logInput = document.getElementById('workLogInput');
+    const postBtn = document.getElementById('btnPostLog');
+
+    let isRunning = false;
+
+    if (startBtn) {
+      startBtn.addEventListener('click', () => {
+        isRunning = !isRunning;
+        if (isRunning) {
+          startBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[22px] animate-spin">progress_activity</span>
+            <span>Work in Progress (00:01)</span>
+          `;
+          startBtn.classList.remove('bg-primary');
+          startBtn.classList.add('bg-tertiary');
+        } else {
+          startBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[22px]">play_circle</span>
+            <span>Start Work &amp; Timer</span>
+          `;
+          startBtn.classList.remove('bg-tertiary');
+          startBtn.classList.add('bg-primary');
+        }
+      });
+    }
+
+    if (voiceBtn) {
+      voiceBtn.addEventListener('click', () => {
+        voiceBtn.classList.toggle('text-error');
+        voiceBtn.classList.toggle('bg-error-container');
+        if (voiceBtn.classList.contains('text-error')) {
+          logInput.placeholder = "Listening... Recording voice memo transcript";
+        } else {
+          logInput.placeholder = "Record inspection finding, pressure reading, or pipe status...";
+        }
+      });
+    }
+
+    if (postBtn && logInput) {
+      postBtn.addEventListener('click', () => {
+        if (logInput.value.trim()) {
+          logInput.value = '';
+          postBtn.textContent = 'Saved!';
+          setTimeout(() => {
+            postBtn.textContent = 'Log Entry';
+          }, 1500);
+        }
+      });
+    }
+  })();
+</script></main></body></html>

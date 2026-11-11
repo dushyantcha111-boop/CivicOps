@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "secondary-fixed-dim": "#bec6e0", "on-tertiary-fixed": "#002113", "secondary-container": "#dae2fd", "on-surface": "#0b1c30", "surface-bright": "#f8f9ff", "on-surface-variant": "#434655", "outline-variant": "#c3c6d7", "surface-variant": "#d3e4fe", "tertiary-fixed-dim": "#4edea3", "tertiary": "#006242", "surface-container-highest": "#d3e4fe", "surface-dim": "#cbdbf5", "surface": "#f8f9ff", "tertiary-fixed": "#6ffbbe", "tertiary-container": "#007d55", "error-container": "#ffdad6", "on-secondary": "#ffffff", "on-primary": "#ffffff", "secondary-fixed": "#dae2fd", "surface-container-low": "#eff4ff", "inverse-surface": "#213145", "surface-tint": "#0053db", "inverse-primary": "#b4c5ff", "on-primary-fixed-variant": "#003ea8", "primary-fixed": "#dbe1ff", "background": "#f8f9ff", "on-tertiary": "#ffffff", "inverse-on-surface": "#eaf1ff", "secondary": "#565e74", "error": "#ba1a1a", "on-error": "#ffffff", "on-error-container": "#93000a", "primary": "#004ac6", "on-secondary-fixed": "#131b2e", "on-primary-fixed": "#00174b", "surface-container-lowest": "#ffffff", "surface-container-high": "#dce9ff", "on-secondary-fixed-variant": "#3f465c", "surface-container": "#e5eeff", "on-primary-container": "#eeefff", "on-tertiary-container": "#bdffdb", "on-secondary-container": "#5c647a", "primary-fixed-dim": "#b4c5ff", "on-background": "#0b1c30", "outline": "#737686", "primary-container": "#2563eb", "on-tertiary-fixed-variant": "#005236" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "1.5rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "gutter": "1.5rem", "margin-mobile": "1rem", "space-md": "1rem", "gutter-mobile": "0.75rem", "space-xl": "2rem", "space-xs": "0.25rem" }, "fontFamily": { "body-md": ["Inter"], "label-sm": ["Inter"], "label-lg": ["Inter"], "body-sm": ["Inter"], "title-md": ["Inter"], "display-lg": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-lg": ["Inter"], "headline-sm": ["Plus Jakarta Sans"], "display-lg-mobile": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Inter"], "title-lg": ["Inter"], "headline-md": ["Plus Jakarta Sans"] }, "fontSize": { "body-md": ["0.875rem", { "lineHeight": "1.375rem", "fontWeight": "400" }], "label-sm": ["0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.04em", "fontWeight": "600" }], "label-lg": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.01em", "fontWeight": "600" }], "body-sm": ["0.75rem", { "lineHeight": "1.125rem", "fontWeight": "400" }], "title-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "600" }], "display-lg": ["3rem", { "lineHeight": "3.5rem", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }], "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "letterSpacing": "-0.005em", "fontWeight": "600" }], "display-lg-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "headline-lg": ["2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.015em", "fontWeight": "700" }], "label-md": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.02em", "fontWeight": "600" }], "title-lg": ["1.125rem", { "lineHeight": "1.625rem", "fontWeight": "600" }], "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col h-full overflow-y-auto"><div class="h-16 px-space-md flex items-center gap-space-sm bg-surface-container-lowest"><div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-on-primary"><span class="material-symbols-outlined text-[20px]">apartment</span></div><div class="flex flex-col min-w-0"><span class="font-title-md text-title-md text-on-surface truncate leading-tight">Green Valley</span><span class="font-label-sm text-label-sm text-secondary truncate">Operations Console</span></div></div><div class="px-space-sm py-space-sm"><div class="bg-surface-container-low rounded-lg p-space-sm"><div class="flex items-center justify-between mb-1"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active Shift</span><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span></div><p class="font-title-md text-label-md text-on-surface">Morning Shift</p><p class="font-body-sm text-body-sm text-on-surface-variant">06:00 - 14:00 | Today</p></div></div><nav class="flex-1 px-space-sm py-space-xs space-y-space-md" data-active-classes="bg-primary-container text-on-primary font-title-md rounded-lg"><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Command Center</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="overview" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-body-md text-body-md">Overview</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="complaint-operations" href="#"><span class="material-symbols-outlined text-[20px]">inbox_customize</span><span class="font-body-md text-body-md">Complaint Operations</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 transition-colors bg-primary-container text-on-primary font-title-md rounded-lg" data-path="recurrence-review" href="#"><span class="material-symbols-outlined text-[20px]">rule</span><span class="font-body-md text-body-md">Recurrence Review</span></a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Intelligence</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="memory-graph" href="#"><span class="material-symbols-outlined text-[20px]">hub</span><span class="font-body-md text-body-md">Memory Graph</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="reliability-radar" href="#"><span class="material-symbols-outlined text-[20px]">radar</span><span class="font-body-md text-body-md">Reliability Radar</span></a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Asset &amp; Maintenance</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="work-orders" href="#"><span class="material-symbols-outlined text-[20px]">engineering</span><span class="font-body-md text-body-md">Work Orders</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="asset-register" href="#"><span class="material-symbols-outlined text-[20px]">inventory_2</span><span class="font-body-md text-body-md">Asset Register</span></a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Community</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="residents-units" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span class="font-body-md text-body-md">Residents &amp; Units</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="security-access" href="#"><span class="material-symbols-outlined text-[20px]">security</span><span class="font-body-md text-body-md">Security &amp; Access</span></a></div><div class="space-y-1"><div class="px-space-sm py-1 font-label-sm text-label-sm uppercase tracking-wider text-secondary">Governance</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="audit-logs" href="#"><span class="material-symbols-outlined text-[20px]">history_edu</span><span class="font-body-md text-body-md">Audit &amp; Logs</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="font-body-md text-body-md">Settings</span></a></div></nav></div><div class="p-space-sm bg-surface-container-lowest"><div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0 flex-1"><span class="font-title-md text-label-md text-on-surface truncate">Suresh Patel</span><span class="font-label-sm text-label-sm text-secondary truncate">Estate Lead</span></div><span class="material-symbols-outlined text-on-surface-variant text-[18px]">more_vert</span></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm px-space-sm py-1.5 rounded-lg bg-surface-container-lowest shadow-[0_1px_3px_rgba(0,0,0,0.05)]"><span class="material-symbols-outlined text-primary text-[20px]">domain</span><div class="flex flex-col text-left"><span class="font-title-md text-label-md text-on-surface leading-tight">Green Valley Residency</span><span class="font-label-sm text-label-sm text-secondary leading-tight">480 Units</span></div><span class="material-symbols-outlined text-on-surface-variant text-[18px] ml-1">expand_more</span></div><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-outline text-[20px]">search</span><input class="w-80 h-10 pl-10 pr-space-md rounded-lg bg-surface-container-lowest font-body-sm text-body-sm text-on-surface placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary shadow-[0_1px_3px_rgba(0,0,0,0.05)]" placeholder="Search unit, ticket, resident, staff (/) ..." type="text"/></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container"><span class="material-symbols-outlined text-[16px] text-error">emergency_home</span><span class="font-label-sm text-label-sm font-semibold">3 Urgent Alerts</span></div><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container"><span class="material-symbols-outlined text-[16px]">crisis_alert</span><span class="font-label-sm text-label-sm font-semibold">5 Gate Clearances</span></div></div><div class="h-6 w-px bg-outline-variant"></div><button class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><button class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[22px]">help_outline</span></button><div class="flex items-center gap-space-sm pl-2"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Context Header & Breadcrumbs -->
+<div class="px-space-lg py-space-md bg-surface-container-lowest shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between flex-wrap gap-space-sm">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 font-label-md text-label-md text-secondary">
+<span class="hover:text-primary transition-colors cursor-pointer">Governance &amp; Infrastructure</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Recurrence Review Queue</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="font-title-md text-label-md text-primary font-semibold">Cluster #RC-2024-09 (Shaft #4 Vertical CPVC Riser)</span>
+</nav>
+<!-- Sync Status & Rule Indicator -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high text-on-surface">
+<span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span>
+<span class="font-label-sm text-label-sm">Deterministic Filter: <strong class="font-semibold text-on-surface">Active (≥2 Incidents / 90d)</strong></span>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+<span>Live Sync 09:42 IST</span>
+</div>
+</div>
+</div>
+<!-- Title & Action Bar -->
+<div class="flex items-center justify-between flex-wrap gap-space-md pt-1">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Community Recurrence Review Queue</h1>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">Automated telemetry clustering and mechanical fault correlation across 480 residential units &amp; common MEP assets.</p>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-title-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add_link</span>
+<span>Link Existing Incidents</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-title-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">biotech</span>
+<span>Trigger Forensic Inspection</span>
+</button>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-title-md text-label-md shadow-sm transition-all">
+<span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+<span>Export Audit Pack</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Operational Surface Canvas -->
+<div class="p-space-lg flex flex-col gap-space-lg">
+<!-- KPI Metric Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<!-- Card 1 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Flagged Clusters</span>
+<span class="font-display-lg text-headline-lg text-on-surface mt-1">14 Flagged</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">grain</span>
+</div>
+</div>
+<div class="mt-3 pt-3 bg-surface-container-low/50 rounded-lg p-2 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Algorithmic pattern match</span>
+<span class="font-label-sm text-label-sm font-semibold text-error">8 Critical • 6 Elevated</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Confirmed Recurrences</span>
+<span class="font-display-lg text-headline-lg text-on-surface mt-1">9 Confirmed</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[22px]">verified</span>
+</div>
+</div>
+<div class="mt-3 pt-3 bg-surface-container-low/50 rounded-lg p-2 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Validated by Estate Lead</span>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm">Root Cause ID'd</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Pending Reviews</span>
+<span class="font-display-lg text-headline-lg text-on-surface mt-1">4 Pending</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[22px]">pending_actions</span>
+</div>
+</div>
+<div class="mt-3 pt-3 bg-surface-container-low/50 rounded-lg p-2 flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Awaiting Physical Sign-off</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Avg Triage: 4.2h</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-error">Overdue Investigations</span>
+<span class="font-display-lg text-headline-lg text-error mt-1">1 Overdue</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[22px]">warning</span>
+</div>
+</div>
+<div class="mt-3 pt-3 bg-error-container/40 rounded-lg p-2 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-error shrink-0">schedule</span>
+<span class="font-body-sm text-body-sm text-on-error-container truncate font-medium">Lift B2 Sensor Drift (+18h past SLA)</span>
+</div>
+</div>
+</div>
+<!-- Filter Bar & Scope Controller -->
+<div class="p-space-md bg-surface-container-lowest rounded-xl shadow-sm flex flex-col gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-sm justify-between">
+<!-- Search bar -->
+<div class="relative flex-1 min-w-[280px]">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-secondary text-[20px]">search</span>
+<input class="w-full h-11 pl-10 pr-space-md rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface placeholder-secondary focus:outline-none focus:bg-surface-container-lowest shadow-sm" placeholder="Search cluster ID, ticket #, asset tag (#AST-...), unit, or keyword..." type="text"/>
+</div>
+<!-- Scope Controls Dropdowns -->
+<div class="flex flex-wrap items-center gap-2">
+<!-- Tower Filter -->
+<div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low text-on-surface cursor-pointer hover:bg-surface-container transition-colors">
+<span class="font-label-sm text-label-sm text-secondary">Tower:</span>
+<span class="font-title-md text-label-md font-semibold">Tower B (6)</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+</div>
+<!-- Floor Filter -->
+<div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low text-on-surface cursor-pointer hover:bg-surface-container transition-colors">
+<span class="font-label-sm text-label-sm text-secondary">Floor:</span>
+<span class="font-title-md text-label-md font-semibold">Floor 4</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+</div>
+<!-- Asset Class -->
+<div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low text-on-surface cursor-pointer hover:bg-surface-container transition-colors">
+<span class="font-label-sm text-label-sm text-secondary">Asset Class:</span>
+<span class="font-title-md text-label-md font-semibold">Plumbing &amp; Wet Risers</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+</div>
+<!-- Severity -->
+<div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low text-on-surface cursor-pointer hover:bg-surface-container transition-colors">
+<span class="font-label-sm text-label-sm text-secondary">Severity:</span>
+<span class="font-title-md text-label-md font-semibold">Critical &amp; High</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+</div>
+<!-- Status -->
+<div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low text-on-surface cursor-pointer hover:bg-surface-container transition-colors">
+<span class="font-label-sm text-label-sm text-secondary">Status:</span>
+<span class="font-title-md text-label-md font-semibold">Under Investigation</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+</div>
+<!-- Date Range -->
+<div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low text-on-surface cursor-pointer hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[16px] text-secondary">calendar_today</span>
+<span class="font-title-md text-label-md font-semibold">Rolling 60 Days</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Quick toggles / Clear controls -->
+<div class="flex items-center justify-between text-body-sm font-body-sm text-secondary pt-1 flex-wrap gap-2">
+<div class="flex items-center gap-3">
+<span>Active View: <strong class="text-on-surface font-semibold">Active Riser &amp; Core Mechanicals</strong></span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Showing <strong>1 of 14</strong> active clusters matching criteria</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-primary hover:underline font-title-md text-label-md">Save Current Filter Preset</button>
+<button class="text-secondary hover:text-on-surface font-title-md text-label-md">Reset to Default</button>
+</div>
+</div>
+</div>
+<!-- Master-Detail Operational Workspace -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT SIDE (38% ~ 5 Cols): Candidate Queue -->
+<div class="lg:col-span-5 flex flex-col gap-space-md">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md text-on-surface">Candidate Queue</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">4 Queued</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Sorted by Recurrence Risk</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- CARD 1: Selected Active Card -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-md transition-all cursor-pointer relative bg-gradient-to-r from-primary/5 via-transparent to-transparent">
+<!-- Indicator Pill on Left Edge -->
+<div class="absolute left-0 top-3 bottom-3 w-1.5 bg-primary rounded-r-full"></div>
+<div class="flex items-start justify-between gap-2 pl-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-primary tracking-wide">CLUSTER #RC-2024-09</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">Under Investigation</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mt-1 leading-snug font-semibold">Shaft #4 CPVC Vertical Riser Water Seepage</h3>
+</div>
+<span class="material-symbols-outlined text-primary text-[22px]">arrow_forward</span>
+</div>
+<!-- Meta attributes -->
+<div class="pl-2 mt-3 space-y-1.5">
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+<span>Tower B • Floor 4 (Flats B-401, B-402, B-403)</span>
+</div>
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">inventory_2</span>
+<span>Asset: <strong class="text-on-surface font-medium">Main Wet Riser #AST-CPVC-04</strong></span>
+</div>
+</div>
+<!-- Risk Metrics Banner -->
+<div class="ml-2 mt-3 p-2.5 rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-error text-[18px]">repeat</span>
+<span class="font-label-sm text-label-sm font-bold text-error">3 Incidents in 58 Days</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary">Mean Interval: <strong>19.3 Days</strong></span>
+</div>
+<!-- Incident Timeline Pills -->
+<div class="ml-2 mt-3 pt-2.5 flex items-center gap-1.5 flex-wrap">
+<span class="font-label-sm text-label-sm text-secondary mr-1">Chained:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">14 Jul (#GVR-312)</span>
+<span class="text-secondary text-[12px]">→</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">02 Oct (#GVR-650)</span>
+<span class="text-secondary text-[12px]">→</span>
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">24 Oct (#GVR-884)</span>
+</div>
+</div>
+<!-- CARD 2: Overdue Review -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-secondary">CLUSTER #RC-2024-08</span>
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">Overdue Review (+18h)</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mt-1 font-semibold">Lift B2 Optical Curtain Sensor Drift</h3>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<div class="mt-2.5 space-y-1 text-body-sm font-body-sm text-on-surface-variant">
+<div>Tower B, Core 2 (Fl 7–12) • Asset: <strong class="text-on-surface font-medium">#LFT-B2</strong></div>
+<div class="text-secondary font-label-sm text-label-sm">2 Incidents in 26 Days • Door recalibration failure</div>
+</div>
+</div>
+<!-- CARD 3: Confirmed Recurrence -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-secondary">CLUSTER #RC-2024-07</span>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-semibold">Confirmed Recurrence</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mt-1 font-semibold">Substation DG-02 Voltage Surge &amp; Fuel Line Cavitation</h3>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<div class="mt-2.5 space-y-1 text-body-sm font-body-sm text-on-surface-variant">
+<div>DG Yard Bay 2 • Asset: <strong class="text-on-surface font-medium">#DG-02</strong></div>
+<div class="text-secondary font-label-sm text-label-sm">2 Incidents in 41 Days • Fuel dampener failure diagnosed</div>
+</div>
+</div>
+<!-- CARD 4: Rejected / Isolated -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all cursor-pointer opacity-75">
+<div class="flex items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm font-bold text-secondary">CLUSTER #RC-2024-05</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Rejected (Spurious)</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mt-1 font-semibold">Main Corridor LED Driver Flickering</h3>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">chevron_right</span>
+</div>
+<div class="mt-2.5 space-y-1 text-body-sm font-body-sm text-on-surface-variant">
+<div>Tower A Lobby • Asset: <strong class="text-on-surface font-medium">#LGT-A0</strong></div>
+<div class="text-secondary font-label-sm text-label-sm">3 Incidents in 75 Days • External grid surge trip (Non-asset)</div>
+</div>
+</div>
+</div>
+<!-- Queue Summary Footer -->
+<div class="p-3 bg-surface-container-low rounded-xl flex items-center justify-between text-body-sm font-body-sm text-secondary">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span>
+            9 Recurring items resolved this quarter
+          </span>
+<a class="font-title-md text-label-md text-primary hover:underline" href="#">View History</a>
+</div>
+</div>
+<!-- RIGHT SIDE (62% ~ 7 Cols): Deep-Dive Recurrence Console -->
+<div class="lg:col-span-7 flex flex-col gap-space-lg">
+<!-- Investigation Header Panel -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-start justify-between flex-wrap gap-space-sm">
+<div>
+<div class="flex items-center gap-2.5">
+<span class="px-2.5 py-1 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold">SHAFT INCIDENT CLUSTER</span>
+<span class="font-label-sm text-label-sm text-secondary">Created: 24 Oct 2024, 09:25 IST</span>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary">Trigger: Rule #RULE-PLUMB-03</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold mt-1.5">Cluster #RC-2024-09: Shaft #4 Vertical CPVC Riser</h2>
+</div>
+<!-- Recurrence Status Controls -->
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-title-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[16px] text-error">close</span>
+<span>Reject (Independent)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-tertiary text-on-tertiary hover:bg-tertiary-container font-title-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Mark as Confirmed</span>
+</button>
+</div>
+</div>
+<!-- Investigators & Stakeholders -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md p-space-sm bg-surface-container-low rounded-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-title-md text-label-md">SP</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Lead Investigator</span>
+<span class="font-title-md text-label-md text-on-surface font-semibold">Suresh Patel (Estate Lead)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-title-md text-label-md">RK</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Field MEP Specialist</span>
+<span class="font-title-md text-label-md text-on-surface font-semibold">Ramesh Kumar (Senior MEP)</span>
+</div>
+</div>
+</div>
+<!-- Governance Guardrail Notice -->
+<div class="p-3 bg-secondary-container/50 rounded-lg flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">policy</span>
+<div class="text-body-sm font-body-sm text-on-secondary-container">
+<strong class="font-semibold text-on-surface">Human-in-the-Loop Governance:</strong> Recurrence is never finalized automatically by algorithms. Estate Management must verify hydraulic and physical linkage across telemetry points before classifying as persistent mechanical failure.
+            </div>
+</div>
+</div>
+<!-- MTBI Timeline & Pressure Surge Graph -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Recurrence Velocity</span>
+<h3 class="font-title-lg text-title-lg text-on-surface font-bold">Mean Time Between Incidents (MTBI) Degradation</h3>
+</div>
+<span class="px-2.5 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">Compression Rate: -72.5%</span>
+</div>
+<!-- Visual Delta Timeline with Inline SVG -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col gap-space-md">
+<div class="relative w-full py-2">
+<!-- Timeline Track -->
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 bg-primary w-full"></div>
+</div>
+<!-- Node Points -->
+<div class="flex justify-between items-start mt-3">
+<!-- Incident 1 -->
+<div class="flex flex-col items-start max-w-[28%]">
+<div class="flex items-center gap-1.5">
+<span class="w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center ring-4 ring-surface-container-low"></span>
+<span class="font-title-md text-label-md font-bold text-on-surface">14 Jul 2024</span>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-secondary mt-1">Ticket #GVR-312</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">CPVC solvent joint repair completed.</p>
+</div>
+<!-- Delta Badge 1 -->
+<div class="flex flex-col items-center">
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest text-secondary font-label-sm text-label-sm font-semibold">+80 Days</span>
+<span class="text-[11px] text-secondary mt-0.5">Initial Steady State</span>
+</div>
+<!-- Incident 2 -->
+<div class="flex flex-col items-center max-w-[28%] text-center">
+<div class="flex items-center gap-1.5">
+<span class="w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center ring-4 ring-surface-container-low"></span>
+<span class="font-title-md text-label-md font-bold text-on-surface">02 Oct 2024</span>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-secondary mt-1">Ticket #GVR-650</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Flange micro-crack sleeve reinforcement.</p>
+</div>
+<!-- Delta Badge 2 -->
+<div class="flex flex-col items-center">
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">+22 Days</span>
+<span class="text-[11px] text-error font-medium mt-0.5">Accelerating</span>
+</div>
+<!-- Incident 3 -->
+<div class="flex flex-col items-end max-w-[28%] text-right">
+<div class="flex items-center gap-1.5 justify-end">
+<span class="font-title-md text-label-md font-bold text-error">24 Oct 2024</span>
+<span class="w-3.5 h-3.5 rounded-full bg-error flex items-center justify-center ring-4 ring-error-container animate-ping"></span>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-error mt-1">Ticket #GVR-884 (Active)</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Brass coupler replacement; shock recorded at 4.8 Bar.</p>
+</div>
+</div>
+</div>
+<!-- Pressure Shock Inline Telemetry Chart -->
+<div class="pt-2">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Shaft #4 In-Line Hydraulic Pressure Profile (Bar) vs Nominal</span>
+<span class="font-label-sm text-label-sm text-error font-bold">Water Hammer Spike: 4.8 Bar (Nominal: 3.2 Bar)</span>
+</div>
+<div class="h-28 w-full bg-surface-container-lowest rounded-lg p-2 flex items-center justify-center">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 600 90">
+<!-- Nominal Line -->
+<line class="text-outline-variant" stroke="currentColor" stroke-dasharray="4 4" stroke-width="1.5" x1="0" x2="600" y1="55" y2="55"></line>
+<text class="text-secondary text-[10px] fill-current" font-family="Inter" x="10" y="50">Rated Safe Operating Limit: 3.2 Bar</text>
+<!-- Normal trace -->
+<path class="text-primary" d="M 0 55 Q 30 54 60 55 T 120 56 T 180 54 T 240 55 T 300 56 T 360 55 T 410 54" fill="none" stroke="currentColor" stroke-width="2"></path>
+<!-- Pump Cycle Switch Water Hammer Shock Spike -->
+<path class="text-error" d="M 410 54 L 430 12 L 445 78 L 460 30 L 475 62 L 490 52 L 530 55 L 600 55" fill="none" stroke="currentColor" stroke-width="2.5"></path>
+<!-- Shaded Shock Zone -->
+<polygon class="text-error/10 fill-current" points="410,54 430,12 445,78 460,30 475,62 490,52 490,90 410,90"></polygon>
+<!-- Marker -->
+<circle class="fill-current text-error" cx="430" cy="12" r="4"></circle>
+<text class="text-error text-[11px] font-bold fill-current" font-family="Inter" x="438" y="18">4.8 Bar Transient Shock</text>
+</svg>
+</div>
+</div>
+<!-- Analysis Callout -->
+<div class="p-3 bg-error-container/30 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-[18px]">analytics</span>
+<p class="font-body-sm text-body-sm text-on-error-container">
+<strong>Forensic Conclusion:</strong> Failure interval compressed from <strong>80 days to 22 days</strong> (72.5% decrease). Progressive upstream mechanical impulse rather than routine CPVC wear-and-tear.
+              </p>
+</div>
+</div>
+</div>
+<!-- Grouped Complaint & Evidence Dossier -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-on-surface font-bold">Grouped Complaint &amp; Evidence Dossier (3 Records)</h3>
+<span class="font-label-sm text-label-sm text-secondary">All Chain Members Verified</span>
+</div>
+<div class="space-y-space-md">
+<!-- Record 1 (Active) -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-sm relative">
+<div class="flex items-start justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-error text-on-error font-label-sm text-label-sm font-bold">CURRENT</span>
+<span class="font-title-md text-title-md font-semibold text-on-surface">Ticket #GVR-2024-884</span>
+<span class="text-secondary font-body-sm text-body-sm">• Reported Today 09:15 IST by Rahul Sharma (Flat B-402)</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">Active Escalation</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md text-body-sm font-body-sm mt-1">
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">Observed Symptoms</span>
+<span class="text-on-surface font-medium">Acoustic cavitation 2.4 kHz, dynamic pressure spike 4.8 Bar on booster pump initiation.</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">Field Work Performed</span>
+<span class="text-on-surface font-medium">Ramesh Kumar fitted 25mm industrial brass coupler. Post-repair idle stabilized at 3.2 Bar.</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider block">Cryptographic Hash Verification</span>
+<div class="flex flex-col gap-1 mt-0.5">
+<span class="font-mono text-label-sm text-secondary">#7f8a...c93b (Before)</span>
+<span class="font-mono text-label-sm text-secondary">#8b12...e41a (After)</span>
+</div>
+</div>
+</div>
+<!-- Media / Telemetry Snapshots -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+<div class="rounded-lg bg-surface-container p-2 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-secondary text-[24px]">image</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold mt-1">Coupler Seep</span>
+<span class="text-[10px] text-secondary">09:22 IST</span>
+</div>
+<div class="rounded-lg bg-surface-container p-2 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-secondary text-[24px]">graphic_eq</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold mt-1">Acoustic Spectrogram</span>
+<span class="text-[10px] text-secondary">2.4 kHz Pulse</span>
+</div>
+<div class="rounded-lg bg-surface-container p-2 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-secondary text-[24px]">speed</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold mt-1">Telemetry Log</span>
+<span class="text-[10px] text-secondary">4.8 Bar Transient</span>
+</div>
+<div class="rounded-lg bg-surface-container p-2 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-tertiary text-[24px]">verified_user</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold mt-1">Geo-Tag Stamp</span>
+<span class="text-[10px] text-tertiary font-bold">100% Match</span>
+</div>
+</div>
+</div>
+<!-- Record 2 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-label-md font-semibold text-on-surface">Ticket #GVR-2024-650</span>
+<span class="text-secondary font-body-sm text-body-sm">• 02 Oct 2024 by Rohit Verma (Tenant B-402)</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Resolved (22d prior)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Symptoms:</strong> Hairline fissure 15cm from ceiling joint. Tech Ramesh K. applied reinforced PVC collar.
+              </p>
+<div class="text-body-sm font-body-sm text-secondary italic">
+                Logged Note: "Observed vibration shudder whenever basement booster pump switches on."
+              </div>
+</div>
+<!-- Record 3 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-label-md font-semibold text-on-surface">Ticket #GVR-2024-312</span>
+<span class="text-secondary font-body-sm text-body-sm">• 14 Jul 2024 by Society Guard (Riser patrol)</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Resolved (102d prior)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Symptoms:</strong> Seep at coupler flange. Tech Sunil V. replaced CPVC coupler with OEM solvent weld.
+              </p>
+</div>
+</div>
+</div>
+<!-- Root-Cause Investigation & Multi-Asset Linkage -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h3 class="font-title-lg text-title-lg text-on-surface font-bold">Memory Graph Asset Correlation</h3>
+<span class="px-2.5 py-1 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">Cross-Domain Telemetry Linked</span>
+</div>
+<!-- Connected Graph Topology Card -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col gap-space-sm">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">account_tree</span>
+<span class="font-title-md text-label-md font-bold text-on-surface">Primary Physical Root Cause: Booster Pump P-02</span>
+</div>
+<span class="font-mono text-label-sm text-secondary">Asset Tag: #AST-PMP-002 (DG Yard Bay 1)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Diagnostic correlations confirm that Shaft #4 CPVC riser ruptures are directly triggered by <strong>Booster Pump P-02</strong>. The check-valve dampener spring fatigue allows severe <strong>hydraulic water hammer shockwaves (peaking at 4.8 Bar vs 3.2 Bar rated)</strong> to propagate upward during automatic pressurization cycles, fracturing the brittle solvent-welded CPVC joint at Floor 4.
+            </p>
+<!-- Management Note Box -->
+<div class="mt-2 p-3.5 rounded-lg bg-surface-container-lowest shadow-sm">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">edit_note</span>
+<span class="font-title-md text-label-md font-bold text-on-surface">Estate Lead Technical Memo</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Updated 24 Oct 10:45 IST by Suresh Patel</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface bg-surface-container-low/50 p-2.5 rounded-md italic">
+                "Patch repairs on Floor 4 will repeatedly fail without an upstream dampener overhaul. Directing immediate procurement of heavy-duty dampener kit #DMP-02 and authorizing pressure relief bypass."
+              </p>
+</div>
+</div>
+<!-- Follow-Up Preventive Directives -->
+<div class="flex flex-col gap-space-sm pt-1">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Follow-Up Preventive Directives</span>
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-title-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">build_circle</span>
+<span>Authorize Capital Work Directive (Overhaul Booster Pump P-02)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-title-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">sensors</span>
+<span>Assign Follow-Up Ultrasonic Inspection</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container text-on-surface font-title-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Print Forensic Dossier</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Immutable Investigation Audit & Escalation Log -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">history_edu</span>
+<h3 class="font-title-lg text-title-lg text-on-surface font-bold">Investigation Audit Trail</h3>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Tamper-Evident Ledger</span>
+</div>
+<div class="space-y-space-sm">
+<!-- Entry 1 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex items-start justify-between gap-4">
+<div class="flex items-start gap-3">
+<span class="w-2 h-2 rounded-full bg-primary mt-2 shrink-0"></span>
+<div>
+<span class="font-title-md text-label-md text-on-surface font-semibold">Added Root-Cause Memo linking Booster Pump P-02</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Categorized failure as upstream hydraulic shock; initiated capital requisition.</p>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-title-md text-label-md text-on-surface font-medium block">Suresh Patel (Estate Lead)</span>
+<span class="font-label-sm text-label-sm text-secondary">24 Oct 10:45 IST</span>
+</div>
+</div>
+<!-- Entry 2 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex items-start justify-between gap-4">
+<div class="flex items-start gap-3">
+<span class="w-2 h-2 rounded-full bg-secondary mt-2 shrink-0"></span>
+<div>
+<span class="font-title-md text-label-md text-on-surface font-semibold">Submitted acoustic cavitation telemetry &amp; photo hashes</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Brass coupler installed; transient pressure surge documented at 4.8 Bar.</p>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-title-md text-label-md text-on-surface font-medium block">Ramesh Kumar (Lead MEP)</span>
+<span class="font-label-sm text-label-sm text-secondary">24 Oct 10:20 IST</span>
+</div>
+</div>
+<!-- Entry 3 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex items-start justify-between gap-4">
+<div class="flex items-start gap-3">
+<span class="w-2 h-2 rounded-full bg-tertiary mt-2 shrink-0"></span>
+<div>
+<span class="font-title-md text-label-md text-on-surface font-semibold">Flagged Cluster #RC-2024-09 via Automated Rule</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">3rd incident logged inside 60-day observation window on Asset #AST-CPVC-04.</p>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-title-md text-label-md text-on-surface font-medium block">Rule Engine (#RULE-PLUMB-03)</span>
+<span class="font-label-sm text-label-sm text-secondary">24 Oct 09:25 IST</span>
+</div>
+</div>
+<!-- Entry 4 -->
+<div class="p-3 rounded-lg bg-surface-container-low flex items-start justify-between gap-4">
+<div class="flex items-start gap-3">
+<span class="w-2 h-2 rounded-full bg-secondary mt-2 shrink-0"></span>
+<div>
+<span class="font-title-md text-label-md text-on-surface font-semibold">Resident Ticket #GVR-2024-884 Registered</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Reported weeping water and shuddering in Flat B-402 duct chase.</p>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-title-md text-label-md text-on-surface font-medium block">Rahul Sharma (Resident)</span>
+<span class="font-label-sm text-label-sm text-secondary">24 Oct 09:15 IST</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>
