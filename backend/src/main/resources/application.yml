@@ -7,10 +7,10 @@ spring:
   application:
     name: civicops-community-platform
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/civicops_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    username: ${SPRING_DATASOURCE_USERNAME:civicops_user}
-    password: ${SPRING_DATASOURCE_PASSWORD:civicops_password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${SQL_HOST:localhost}:5432/${SQL_DB_NAME:civicops_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:${SQL_USER:civicops_user}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${SQL_PASSWORD:civicops_password}}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
@@ -18,7 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
     baseline-on-migrate: true

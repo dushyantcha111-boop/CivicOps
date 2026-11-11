@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
@@ -7,6 +7,8 @@ import { RoleSwitcherModal } from './components/layout/RoleSwitcherModal';
 import { EmergencySOSModal } from './components/layout/EmergencySOSModal';
 import { PreApproveVisitorModal } from './components/layout/PreApproveVisitorModal';
 import { FastCheckInModal } from './components/layout/FastCheckInModal';
+import { LoginPage } from './components/auth/LoginPage';
+import { SignupPage } from './components/auth/SignupPage';
 
 // Views
 import { ManagementOverviewView } from './components/views/ManagementOverviewView';
@@ -36,6 +38,15 @@ import { SettingsRolesPermissionsView } from './components/views/SettingsRolesPe
 
 const MainContent: React.FC = () => {
   const { activeTab, toast } = useApp();
+  const [authView, setAuthView] = useState<'login' | 'signup' | 'app'>('app');
+
+  if (authView === 'login') {
+    return <LoginPage onSwitchToSignup={() => setAuthView('signup')} />;
+  }
+
+  if (authView === 'signup') {
+    return <SignupPage onSwitchToLogin={() => setAuthView('login')} />;
+  }
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -94,7 +105,29 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased selection:bg-primary selection:text-white">
-      {/* Top Header */}
+      {/* Top Header with Sign In/Out trigger */}
+      <div className="bg-slate-900 text-white text-[11px] py-1 px-4 flex items-center justify-between">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Green Valley Residency • Connected to Java Spring Boot Backend & MySQL</span>
+        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAuthView('login')}
+            className="hover:underline font-semibold text-slate-300 hover:text-white"
+          >
+            Sign In / Switch Account
+          </button>
+          <span>•</span>
+          <button
+            onClick={() => setAuthView('signup')}
+            className="hover:underline font-semibold text-primary-fixed hover:text-white"
+          >
+            Resident Signup
+          </button>
+        </div>
+      </div>
+
       <Header />
 
       {/* Main Layout Body */}

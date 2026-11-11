@@ -18,7 +18,9 @@ import { DEMO_USERS } from '../data/initialData';
 
 interface AppContextType {
   currentUser: User;
+  setCurrentUser: (user: User) => void;
   role: UserRole;
+  setRole: (role: UserRole) => void;
   switchRole: (role: UserRole) => void;
   selectedTower: string;
   setSelectedTower: (tower: string) => void;
@@ -169,7 +171,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         currentUser,
+        setCurrentUser,
         role,
+        setRole,
         switchRole,
         selectedTower,
         setSelectedTower,
