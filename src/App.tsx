@@ -9,6 +9,7 @@ import { PreApproveVisitorModal } from './components/layout/PreApproveVisitorMod
 import { FastCheckInModal } from './components/layout/FastCheckInModal';
 import { LoginPage } from './components/auth/LoginPage';
 import { SignupPage } from './components/auth/SignupPage';
+import { AuthorizedRoleSelectPage } from './components/auth/AuthorizedRoleSelectPage';
 
 // Views
 import { ManagementOverviewView } from './components/views/ManagementOverviewView';
@@ -37,15 +38,20 @@ import { PreventiveMaintenanceCalendarView } from './components/views/Preventive
 import { SettingsRolesPermissionsView } from './components/views/SettingsRolesPermissionsView';
 
 const MainContent: React.FC = () => {
-  const { activeTab, toast } = useApp();
-  const [authView, setAuthView] = useState<'login' | 'signup' | 'app'>('app');
+  const { isAuthenticated, isRoleSelectionPending, selectAuthorizedRole, activeTab, toast } = useApp();
+  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
 
-  if (authView === 'login') {
+  // Login-first entry point: If unauthenticated, render Login or Signup
+  if (!isAuthenticated) {
+    if (authView === 'signup') {
+      return <SignupPage onSwitchToLogin={() => setAuthView('login')} />;
+    }
     return <LoginPage onSwitchToSignup={() => setAuthView('signup')} />;
   }
 
-  if (authView === 'signup') {
-    return <SignupPage onSwitchToLogin={() => setAuthView('login')} />;
+  // Authorized role selection: If authenticated user has multiple roles and needs to pick one
+  if (isRoleSelectionPending) {
+    return <AuthorizedRoleSelectPage onRoleSelected={(r) => selectAuthorizedRole(r)} />;
   }
 
   const renderActiveView = () => {
@@ -105,26 +111,14 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased selection:bg-primary selection:text-white">
-      {/* Top Header with Sign In/Out trigger */}
+      {/* Top Banner: Connected environment & active session */}
       <div className="bg-slate-900 text-white text-[11px] py-1 px-4 flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Green Valley Residency • Connected to Java Spring Boot Backend & MySQL</span>
+          <span>Green Valley Residency • Connected to Java Spring Boot & PostgreSQL</span>
         </span>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setAuthView('login')}
-            className="hover:underline font-semibold text-slate-300 hover:text-white"
-          >
-            Sign In / Switch Account
-          </button>
-          <span>•</span>
-          <button
-            onClick={() => setAuthView('signup')}
-            className="hover:underline font-semibold text-primary-fixed hover:text-white"
-          >
-            Resident Signup
-          </button>
+        <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+          <span>Protected Session (JWT RBAC)</span>
         </div>
       </div>
 

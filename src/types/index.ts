@@ -6,6 +6,7 @@ export interface User {
   email: string;
   phone: string;
   role: UserRole;
+  authorizedRoles?: UserRole[];
   unitId?: string;
   unitNumber?: string;
   tower?: string;

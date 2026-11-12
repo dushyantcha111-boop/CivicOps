@@ -145,6 +145,31 @@ public class ComplaintWorkflowService {
         return complaintRepository.save(complaint);
     }
 
+    // Step 4: Physical inspection & diagnosis
+    @Transactional
+    public Complaint recordInspection(String complaintId, String technicianName, String inspectionNotes, String evidenceUrl) {
+        Complaint complaint = getComplaintById(complaintId);
+        complaint.setStatus(Complaint.ComplaintStatus.INSPECTING);
+        complaint.setInspectionNotes(inspectionNotes);
+        complaint.setUpdatedAt(LocalDateTime.now());
+
+        ComplaintTimeline step = ComplaintTimeline.builder()
+                .id("tm-" + UUID.randomUUID())
+                .complaint(complaint)
+                .stepNumber(4)
+                .title("Physical Inspection & Diagnosis")
+                .actor(technicianName)
+                .actorRole("MAINTENANCE")
+                .notes(inspectionNotes != null ? inspectionNotes : "Completed diagnostic check.")
+                .status("INSPECTING")
+                .evidenceUrl(evidenceUrl)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        complaint.getTimeline().add(step);
+        return complaintRepository.save(complaint);
+    }
+
     // Step 6: Technician submits resolution proposal (Maintenance staff cannot directly mark resolved)
     @Transactional
     public Complaint submitResolutionProposal(String complaintId, String technicianName, String resolutionDescription, String evidenceUrl) {

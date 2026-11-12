@@ -15,7 +15,7 @@ interface NavSection {
 }
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, complaints, requisitions, incidents, role } = useApp();
+  const { activeTab, setActiveTab, complaints, requisitions, incidents, role, currentUser, logout } = useApp();
 
   const activeComplaintsCount = complaints.filter(
     (c) => c.status !== 'CLOSED' && c.status !== 'RESIDENT_CONFIRMED'
@@ -155,14 +155,39 @@ export const Sidebar: React.FC = () => {
         </nav>
       </div>
 
-      {/* Bottom system status pill */}
-      <div className="p-3 bg-slate-50 border-t border-slate-200">
-        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-600">
+      {/* Bottom User Profile Card & Sign Out */}
+      <div className="p-3 bg-slate-50 border-t border-slate-200 space-y-2">
+        <div className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-white border border-slate-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <img
+              src={currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+              alt={currentUser?.name}
+              className="w-7 h-7 rounded-full object-cover border border-slate-200 shrink-0"
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-slate-800 truncate leading-tight">
+                {currentUser?.name || 'Authorized Member'}
+              </span>
+              <span className="text-[10px] text-slate-500 font-medium truncate">
+                Role: {role}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            title="Sign out of CivicOps"
+            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between px-2.5 py-1 text-[11px] text-slate-500">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-semibold text-slate-700">Hub Online</span>
+            <span className="font-semibold text-slate-600">Hub Active</span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">v3.8.2-GA</span>
+          <span className="text-[10px] text-slate-400 font-mono">v3.8.2</span>
         </div>
       </div>
     </aside>

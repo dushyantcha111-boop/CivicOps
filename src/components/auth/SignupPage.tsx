@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { DEMO_USERS } from '../../data/initialData';
+import { ApiService } from '../../services/api';
 
 interface SignupPageProps {
   onSwitchToLogin: () => void;
 }
 
 export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
-  const { setCurrentUser, setRole, showToast } = useApp();
+  const { setCurrentUser, setRole, setAuthorizedRoles, setIsAuthenticated, setIsRoleSelectionPending, setActiveTab, showToast } = useApp();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -41,24 +41,23 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
     setLoading(true);
 
     try {
-      await new Promise((r) => setTimeout(r, 700));
-
-      const newUser = {
-        id: `usr-${Date.now()}`,
+      const res = await ApiService.register({
         name: fullName,
         email: email,
-        phone: phone || '+1 (555) 019-2834',
-        role: 'RESIDENT' as const, // Security rule: Public signup only allows RESIDENT
+        phone: phone || '+91 98765 43210',
+        password: password,
         tower: tower,
-        unitNumber: unitNumber,
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-        createdAt: new Date().toISOString()
-      };
+        unitNumber: unitNumber
+      });
 
-      DEMO_USERS.push(newUser);
-      setCurrentUser(newUser);
+      setCurrentUser(res.user);
+      sessionStorage.setItem('civicops_user', JSON.stringify(res.user));
+      setAuthorizedRoles(res.authorizedRoles || ['RESIDENT']);
       setRole('RESIDENT');
-      showToast('Account successfully created! Welcome to CivicOps.', 'success');
+      setIsAuthenticated(true);
+      setIsRoleSelectionPending(false);
+      setActiveTab('resident-home');
+      showToast('Account successfully created! Welcome to CivicOps Resident Portal.', 'success');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
       showToast(err.message || 'Registration failed', 'error');
@@ -137,7 +136,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 019-2834"
+                  placeholder="+91 98765 43210"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>

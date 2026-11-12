@@ -19,6 +19,7 @@ export const DEMO_USERS: User[] = [
     email: 'rahul.sharma@greenvalley.in',
     phone: '+91 98765 43210',
     role: 'RESIDENT',
+    authorizedRoles: ['RESIDENT'],
     unitId: 'unit-b-402',
     unitNumber: 'B-402',
     tower: 'Tower B',
@@ -31,6 +32,7 @@ export const DEMO_USERS: User[] = [
     email: 'suresh.patel@civicops.in',
     phone: '+91 98220 11223',
     role: 'MANAGEMENT',
+    authorizedRoles: ['MANAGEMENT'],
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
     designation: 'Estate Lead & General Secretary'
   },
@@ -40,6 +42,7 @@ export const DEMO_USERS: User[] = [
     email: 'ramesh.kumar@civicops.in',
     phone: '+91 98450 77889',
     role: 'MAINTENANCE',
+    authorizedRoles: ['MAINTENANCE'],
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     designation: 'Senior MEP Technician'
   },
@@ -49,6 +52,7 @@ export const DEMO_USERS: User[] = [
     email: 'satpal.singh@civicops.in',
     phone: '+91 99112 33445',
     role: 'SECURITY',
+    authorizedRoles: ['SECURITY'],
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
     designation: 'Gate 1 Lead Marshall'
   },
@@ -58,6 +62,7 @@ export const DEMO_USERS: User[] = [
     email: 'vikram.admin@civicops.in',
     phone: '+91 97110 55667',
     role: 'ADMIN',
+    authorizedRoles: ['ADMIN', 'MANAGEMENT'],
     avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
     designation: 'Systems Administrator & Auditor'
   }

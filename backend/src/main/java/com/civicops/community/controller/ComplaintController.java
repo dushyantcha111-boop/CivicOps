@@ -50,6 +50,16 @@ public class ComplaintController {
         ));
     }
 
+    @PostMapping("/{id}/inspection")
+    public ResponseEntity<Complaint> recordInspection(
+            @PathVariable String id,
+            @RequestBody InspectionRequest request
+    ) {
+        return ResponseEntity.ok(complaintService.recordInspection(
+                id, request.getTechnicianName(), request.getInspectionNotes(), request.getEvidenceUrl()
+        ));
+    }
+
     @PostMapping("/{id}/propose-resolution")
     public ResponseEntity<Complaint> proposeResolution(
             @PathVariable String id,
@@ -101,6 +111,13 @@ public class ComplaintController {
         private String technicianId;
         private String assignerName;
         private String notes;
+    }
+
+    @Data
+    public static class InspectionRequest {
+        private String technicianName;
+        private String inspectionNotes;
+        private String evidenceUrl;
     }
 
     @Data

@@ -6,16 +6,18 @@ export const Header: React.FC = () => {
   const {
     currentUser,
     role,
+    authorizedRoles,
     selectedTower,
     setSelectedTower,
     setIsSosModalOpen,
     setIsRoleSwitcherOpen,
     incidents,
     setActiveTab,
-    resetDatabase
+    logout
   } = useApp();
 
   const activeIncidents = incidents.filter((i) => i.status === 'ACTIVE');
+  const hasMultipleRoles = authorizedRoles && authorizedRoles.length > 1;
 
   const getRoleBadgeColor = (r: UserRole) => {
     switch (r) {
@@ -100,45 +102,54 @@ export const Header: React.FC = () => {
           <span className="sm:hidden">SOS</span>
         </button>
 
-        {/* 1-Click Role Switcher Pill */}
-        <button
-          onClick={() => setIsRoleSwitcherOpen(true)}
-          title="Click to Switch Roles (Resident, Management, Maintenance, Security, Admin)"
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all active:scale-95 shadow-xs ${getRoleBadgeColor(
-            role
-          )}`}
-        >
-          <span className="material-symbols-outlined text-[15px]">swap_horiz</span>
-          <span className="uppercase tracking-wider">{role}</span>
-        </button>
+        {/* Active Role Badge: Clickable to switch between assigned roles if multi-role */}
+        {hasMultipleRoles ? (
+          <button
+            onClick={() => setIsRoleSwitcherOpen(true)}
+            title="Switch between your assigned authorized roles"
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all active:scale-95 shadow-xs cursor-pointer hover:opacity-90 ${getRoleBadgeColor(
+              role
+            )}`}
+          >
+            <span className="material-symbols-outlined text-[15px]">swap_horiz</span>
+            <span className="uppercase tracking-wider">{role}</span>
+          </button>
+        ) : (
+          <div
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border shadow-xs ${getRoleBadgeColor(
+              role
+            )}`}
+          >
+            <span className="material-symbols-outlined text-[15px]">verified_user</span>
+            <span className="uppercase tracking-wider">{role}</span>
+          </div>
+        )}
 
         {/* User Avatar & Info */}
-        <div
-          onClick={() => setIsRoleSwitcherOpen(true)}
-          className="flex items-center gap-2 pl-2 border-l border-slate-200 cursor-pointer group"
-        >
+        <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
           <div className="hidden sm:flex flex-col text-right">
-            <span className="text-xs font-bold text-slate-800 leading-tight group-hover:text-primary transition-colors">
-              {currentUser.name}
+            <span className="text-xs font-bold text-slate-800 leading-tight">
+              {currentUser?.name || 'Authorized Member'}
             </span>
             <span className="text-[10px] text-slate-500 font-medium">
-              {currentUser.unitNumber ? `Flat ${currentUser.unitNumber}` : currentUser.designation}
+              {currentUser?.unitNumber ? `Flat ${currentUser.unitNumber}` : currentUser?.designation || role}
             </span>
           </div>
           <img
-            src={currentUser.avatarUrl}
-            alt={currentUser.name}
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-200 group-hover:ring-primary transition-all"
+            src={currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+            alt={currentUser?.name || 'User'}
+            className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-200"
           />
         </div>
 
-        {/* Reset Database Tool for Reviewers */}
+        {/* Explicit Sign Out Button */}
         <button
-          onClick={resetDatabase}
-          title="Reset demo data to initial seeds"
-          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+          onClick={logout}
+          title="Sign out of your session"
+          className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold transition-colors border border-transparent hover:border-red-200"
         >
-          <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+          <span className="hidden md:inline">Sign Out</span>
         </button>
       </div>
     </header>

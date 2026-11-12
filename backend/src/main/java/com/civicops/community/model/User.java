@@ -43,7 +43,28 @@ public class User {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
+    @Column(name = "authorized_roles")
+    private String authorizedRoles;
+
     private String designation;
+
+    public java.util.List<Role> getAuthorizedRoleList() {
+        if (authorizedRoles == null || authorizedRoles.isBlank()) {
+            return role != null ? java.util.List.of(role) : java.util.List.of(Role.RESIDENT);
+        }
+        return java.util.Arrays.stream(authorizedRoles.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(s -> {
+                    try {
+                        return Role.valueOf(s.toUpperCase());
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toList());
+    }
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
