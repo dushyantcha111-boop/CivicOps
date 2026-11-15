@@ -11,6 +11,9 @@ export interface User {
   unitId?: string;
   unitNumber?: string;
   tower?: string;
+  requestedUnitNumber?: string;
+  requestedTower?: string;
+  unitVerificationStatus?: 'VERIFIED' | 'PENDING_VERIFICATION' | 'REJECTED' | string;
   avatarUrl: string;
   designation?: string;
   active?: boolean;

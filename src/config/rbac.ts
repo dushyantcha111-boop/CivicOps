@@ -6,6 +6,8 @@ export const ROLE_ALLOWED_TABS: Record<UserRole, string[]> = {
     'raise-complaint',
     'resolution-timeline',
     'resident-signoff',
+    'visitor-revocation',
+    'parcel-hub',
     'community-hub',
     'notifications',
     'incident-reporting'

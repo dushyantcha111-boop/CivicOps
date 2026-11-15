@@ -81,8 +81,12 @@ public class AuthController {
                     .body(Map.of("error", "An account with this email address already exists."));
         }
 
-        // Public registration strictly creates RESIDENT accounts only
+        // Public registration strictly creates RESIDENT accounts with pending unit claim verification
         Role assignedRole = Role.RESIDENT;
+        String claimedTower = request.getTower() != null && !request.getTower().isBlank()
+                ? request.getTower().trim() : "Tower A";
+        String claimedUnit = request.getUnitNumber() != null && !request.getUnitNumber().isBlank()
+                ? request.getUnitNumber().trim().toUpperCase() : null;
 
         User newUser = User.builder()
                 .id("usr-" + UUID.randomUUID().toString().substring(0, 8))
@@ -92,8 +96,12 @@ public class AuthController {
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(assignedRole)
                 .authorizedRoles(assignedRole.name())
-                .tower(request.getTower() != null && !request.getTower().isBlank() ? request.getTower().trim() : "Tower A")
-                .unitNumber(request.getUnitNumber() != null && !request.getUnitNumber().isBlank() ? request.getUnitNumber().trim() : "101")
+                .tower(null)
+                .unitId(null)
+                .unitNumber(null)
+                .requestedTower(claimedTower)
+                .requestedUnitNumber(claimedUnit)
+                .unitVerificationStatus("PENDING_VERIFICATION")
                 .avatarUrl("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250")
                 .active(true)
                 .createdAt(LocalDateTime.now())
@@ -101,7 +109,12 @@ public class AuthController {
                 .build();
 
         userRepository.save(newUser);
-        auditService.logAction(newUser, "REGISTER", "USER", newUser.getId(), "Registered new resident account");
+        auditService.logAction(newUser, "REGISTER_PENDING_UNIT", "USER", newUser.getId(),
+                "Registered new resident account; unit claim (" + claimedTower + " / "
+                        + (claimedUnit != null ? claimedUnit : "Unspecified") + ") awaiting verification");
+        auditService.notify(null, "MANAGEMENT", "Unit Claim Verification Needed",
+                newUser.getName() + " requested unit " + (claimedUnit != null ? claimedUnit : "Unspecified")
+                        + " (" + claimedTower + ") during signup.", "USER", newUser.getId());
 
         String token = tokenProvider.generateTokenForUser(newUser.getEmail(), assignedRole.name());
         List<Role> authorizedRoles = newUser.getAuthorizedRoleList();

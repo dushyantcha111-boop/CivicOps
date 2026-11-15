@@ -40,3 +40,11 @@ test('Security guard role cannot access complaint-operations or asset-register',
   assert.equal(isTabAllowedForRole('SECURITY', 'gate-console'), true);
   assert.equal(isTabAllowedForRole('SECURITY', 'visitor-qr-verify'), true);
 });
+
+test('Resident role can manage own visitor passes and parcels but cannot access admin or triage queues', () => {
+  assert.equal(isTabAllowedForRole('RESIDENT', 'resident-home'), true);
+  assert.equal(isTabAllowedForRole('RESIDENT', 'visitor-revocation'), true);
+  assert.equal(isTabAllowedForRole('RESIDENT', 'parcel-hub'), true);
+  assert.equal(isTabAllowedForRole('RESIDENT', 'complaint-operations'), false);
+  assert.equal(isTabAllowedForRole('RESIDENT', 'residents-directory'), false);
+});

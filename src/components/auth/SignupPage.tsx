@@ -57,7 +57,10 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
       setIsAuthenticated(true);
       setIsRoleSelectionPending(false);
       setActiveTab('resident-home');
-      showToast('Account successfully created! Welcome to CivicOps Resident Portal.', 'success');
+      showToast(
+        'Resident account created! Your apartment unit claim has been queued for Management verification.',
+        'success'
+      );
     } catch (err: any) {
       setError(err.message || 'Registration failed');
       showToast(err.message || 'Registration failed', 'error');
@@ -94,7 +97,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 text-xs rounded-xl flex items-start gap-2">
             <span className="material-symbols-outlined text-[18px] text-blue-600 shrink-0 mt-0.5">info</span>
             <span>
-              <strong>Security Policy:</strong> Public registration is restricted to <span className="underline">Resident</span> accounts. Management, Maintenance, Security, and Admin accounts are assigned by System Administrators.
+              <strong>Security Policy:</strong> Public registration creates <span className="underline">Resident</span> accounts only. Claimed apartment units require Management verification before unit dues, parcels, and visitor passes unlock.
             </span>
           </div>
 

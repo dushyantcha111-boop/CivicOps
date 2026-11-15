@@ -226,6 +226,19 @@ export const ApiService = {
     return normalizeUser(res.data);
   },
 
+  async getPendingUnitVerifications(): Promise<User[]> {
+    const res = await apiClient.get('/users/pending-verifications');
+    return (res.data || []).map(normalizeUser);
+  },
+
+  async verifyUnitClaim(
+    userId: string,
+    payload: { approve: boolean; tower?: string; unitNumber?: string; notes?: string }
+  ): Promise<User> {
+    const res = await apiClient.post(`/users/${userId}/verify-unit`, payload);
+    return normalizeUser(res.data);
+  },
+
   // Complaints & 9-step Resolution Trust Timeline
   async getComplaints(): Promise<Complaint[]> {
     const res = await apiClient.get('/complaints');
@@ -538,7 +551,10 @@ export const ApiService = {
     return res.data;
   },
 
-  async payUnitDues(unitId: string, paymentMethod = 'UPI / NetBanking'): Promise<{ unit: Unit; payment: DuesPayment }> {
+  async payUnitDues(
+    unitId: string,
+    paymentMethod = 'Manual / Demo Ledger Entry'
+  ): Promise<{ unit: Unit; payment: DuesPayment }> {
     const res = await apiClient.post(`/units/${unitId}/pay-dues`, { paymentMethod });
     return res.data;
   },

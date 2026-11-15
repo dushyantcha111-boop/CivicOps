@@ -44,4 +44,27 @@ class UserResponseDtoTest {
         assertEquals(Role.RESIDENT, dto.getActiveRole());
         assertEquals(List.of(Role.RESIDENT), dto.getAuthorizedRoles());
     }
+
+    @Test
+    void testUserResponseDtoIncludesUnitVerificationFields() {
+        User pendingUser = User.builder()
+                .id("usr-303")
+                .name("New Resident")
+                .email("new.resident@greenvalley.in")
+                .phone("9876543210")
+                .passwordHash("encoded")
+                .role(Role.RESIDENT)
+                .authorizedRoles("RESIDENT")
+                .requestedTower("Tower B")
+                .requestedUnitNumber("B-402")
+                .unitVerificationStatus("PENDING_VERIFICATION")
+                .build();
+
+        UserResponseDto dto = UserResponseDto.fromEntity(pendingUser);
+
+        assertNull(dto.getUnitNumber());
+        assertEquals("Tower B", dto.getRequestedTower());
+        assertEquals("B-402", dto.getRequestedUnitNumber());
+        assertEquals("PENDING_VERIFICATION", dto.getUnitVerificationStatus());
+    }
 }

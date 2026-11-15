@@ -42,6 +42,16 @@ public class User {
 
     private String tower;
 
+    @Column(name = "requested_unit_number", length = 30)
+    private String requestedUnitNumber;
+
+    @Column(name = "requested_tower", length = 50)
+    private String requestedTower;
+
+    @Builder.Default
+    @Column(name = "unit_verification_status", length = 30)
+    private String unitVerificationStatus = "VERIFIED";
+
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
@@ -53,6 +63,12 @@ public class User {
     @Builder.Default
     @Column(name = "active")
     private Boolean active = true;
+
+    public boolean hasVerifiedUnit() {
+        return unitNumber != null
+                && !unitNumber.isBlank()
+                && (unitVerificationStatus == null || "VERIFIED".equalsIgnoreCase(unitVerificationStatus));
+    }
 
     public java.util.List<Role> getAuthorizedRoleList() {
         if (authorizedRoles == null || authorizedRoles.isBlank()) {

@@ -24,12 +24,18 @@ test('normalizeUser populates role, activeRole, and authorizedRoles defaults cle
     phone: '8888888888',
     role: 'MANAGEMENT',
     authorizedRoles: ['MANAGEMENT', 'RESIDENT'],
+    requestedTower: 'Tower B',
+    requestedUnitNumber: 'B-402',
+    unitVerificationStatus: 'PENDING_VERIFICATION',
     avatarUrl: ''
   });
 
   assert.equal(multiRoleUser.role, 'MANAGEMENT');
   assert.equal(multiRoleUser.activeRole, 'MANAGEMENT');
   assert.deepEqual(multiRoleUser.authorizedRoles, ['MANAGEMENT', 'RESIDENT']);
+  assert.equal(multiRoleUser.requestedTower, 'Tower B');
+  assert.equal(multiRoleUser.requestedUnitNumber, 'B-402');
+  assert.equal(multiRoleUser.unitVerificationStatus, 'PENDING_VERIFICATION');
 });
 
 test('extractApiErrorMessage parses structured Spring Boot error payloads and network failures', () => {

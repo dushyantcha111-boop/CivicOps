@@ -22,6 +22,9 @@ public class UserResponseDto {
     private String unitId;
     private String unitNumber;
     private String tower;
+    private String requestedUnitNumber;
+    private String requestedTower;
+    private String unitVerificationStatus;
     private String avatarUrl;
     private String designation;
     private Boolean active;
@@ -39,6 +42,9 @@ public class UserResponseDto {
                 .unitId(user.getUnitId())
                 .unitNumber(user.getUnitNumber())
                 .tower(user.getTower())
+                .requestedUnitNumber(user.getRequestedUnitNumber())
+                .requestedTower(user.getRequestedTower())
+                .unitVerificationStatus(user.getUnitVerificationStatus() != null ? user.getUnitVerificationStatus() : "VERIFIED")
                 .avatarUrl(user.getAvatarUrl())
                 .designation(user.getDesignation())
                 .active(user.getActive() == null || user.getActive())

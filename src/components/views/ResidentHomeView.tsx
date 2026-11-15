@@ -23,26 +23,37 @@ export const ResidentHomeView: React.FC = () => {
 
   if (!currentUser) return null;
 
-  const userUnit =
-    units.find((u) => u.unitNumber === currentUser.unitNumber) ||
-    units.find((u) => u.residentUserId === currentUser.id) ||
-    units[0];
+  const isUnitVerified =
+    Boolean(currentUser.unitNumber) &&
+    (!currentUser.unitVerificationStatus || currentUser.unitVerificationStatus === 'VERIFIED');
 
-  const residentUnitNumber = userUnit?.unitNumber || currentUser.unitNumber || '';
+  const userUnit = isUnitVerified
+    ? units.find((u) => u.unitNumber === currentUser.unitNumber) ||
+      units.find((u) => u.residentUserId === currentUser.id) ||
+      undefined
+    : undefined;
 
-  const residentComplaints = complaints.filter(
-    (c) => !residentUnitNumber || c.unitNumber === residentUnitNumber || c.residentId === currentUser.id
+  const residentUnitNumber = isUnitVerified ? userUnit?.unitNumber || currentUser.unitNumber || '' : '';
+
+  const residentComplaints = complaints.filter((c) =>
+    residentUnitNumber
+      ? c.unitNumber === residentUnitNumber || c.residentId === currentUser.id
+      : c.residentId === currentUser.id
   );
 
-  const pendingGateApprovals = visitorPasses.filter(
-    (p) =>
-      (!residentUnitNumber || p.unitNumber === residentUnitNumber) &&
-      (p.status === 'PRE_APPROVED' || p.status === 'ACTIVE')
-  );
+  const pendingGateApprovals = isUnitVerified
+    ? visitorPasses.filter(
+        (p) =>
+          (!residentUnitNumber || p.unitNumber === residentUnitNumber) &&
+          (p.status === 'PRE_APPROVED' || p.status === 'ACTIVE')
+      )
+    : [];
 
-  const residentParcels = parcels.filter(
-    (p) => (!residentUnitNumber || p.unitNumber === residentUnitNumber) && p.status !== 'COLLECTED'
-  );
+  const residentParcels = isUnitVerified
+    ? parcels.filter(
+        (p) => (!residentUnitNumber || p.unitNumber === residentUnitNumber) && p.status !== 'COLLECTED'
+      )
+    : [];
 
   const activeIncidentsCount = incidents.filter((i) => i.status !== 'RESOLVED').length;
   const duesPaid = userUnit ? userUnit.duesStatus === 'PAID' || Number(userUnit.duesAmount || 0) <= 0 : false;
@@ -50,16 +61,18 @@ export const ResidentHomeView: React.FC = () => {
 
   const handlePayDues = async () => {
     if (!userUnit) {
-      showToast('No linked flat unit found for dues settlement.', 'error');
+      showToast('No verified flat unit linked for dues settlement.', 'error');
       return;
     }
     setIsPayingDues(true);
     try {
-      const res = await ApiService.payUnitDues(userUnit.id, 'UPI');
+      const res = await ApiService.payUnitDues(userUnit.id, 'Manual / Demo Ledger Entry');
       await refreshData();
-      showToast(`Maintenance dues settled via UPI (Ref: ${res.payment.paymentRef})!`);
+      showToast(
+        `Recorded demo/manual dues settlement (Ref: ${res.payment.paymentRef}). No online payment gateway was charged.`
+      );
     } catch (err: any) {
-      showToast(err?.message || 'Failed to settle maintenance dues', 'error');
+      showToast(err?.message || 'Failed to record dues settlement', 'error');
     } finally {
       setIsPayingDues(false);
     }
@@ -90,10 +103,14 @@ export const ResidentHomeView: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
             <span className="font-semibold text-slate-700">
-              {residentUnitNumber ? `Flat ${residentUnitNumber}` : 'Resident Unit'}
+              {residentUnitNumber
+                ? `Flat ${residentUnitNumber}`
+                : currentUser.requestedUnitNumber
+                ? `Claimed Flat ${currentUser.requestedUnitNumber} (${currentUser.unitVerificationStatus || 'PENDING'})`
+                : 'Unverified Unit'}
             </span>
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-            <span>{userUnit?.tower || currentUser.tower || 'Community'}</span>
+            <span>{userUnit?.tower || currentUser.tower || currentUser.requestedTower || 'Community'}</span>
             <span className="w-1 h-1 rounded-full bg-slate-300"></span>
             <span className="text-primary font-bold">{currentUser.designation || 'Owner Resident'}</span>
           </div>
@@ -127,28 +144,73 @@ export const ResidentHomeView: React.FC = () => {
         </div>
       </section>
 
+      {!isUnitVerified && (
+        <section
+          className={`rounded-2xl p-4 border flex items-start gap-3 text-xs ${
+            currentUser.unitVerificationStatus === 'REJECTED'
+              ? 'bg-red-50 border-red-200 text-red-900'
+              : 'bg-amber-50 border-amber-200 text-amber-950'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[20px] shrink-0 mt-0.5">
+            {currentUser.unitVerificationStatus === 'REJECTED' ? 'gpp_bad' : 'pending_actions'}
+          </span>
+          <div>
+            <strong className="font-bold block">
+              {currentUser.unitVerificationStatus === 'REJECTED'
+                ? 'Apartment Unit Verification Declined'
+                : 'Apartment Unit Verification Pending'}
+            </strong>
+            <p className="mt-0.5 leading-relaxed">
+              {currentUser.unitVerificationStatus === 'REJECTED'
+                ? `Your claim for ${currentUser.requestedTower || 'Tower'} / ${
+                    currentUser.requestedUnitNumber || 'Unit'
+                  } could not be matched with society records. Please contact Estate Management to link your verified flat.`
+                : `Your claim for ${currentUser.requestedTower || 'Tower'} / ${
+                    currentUser.requestedUnitNumber || 'Unit'
+                  } is awaiting Estate Management approval. Visitor passes, unit dues ledger, and parcel alerts unlock automatically after verification.`}
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Quick Action 4-Grid */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* 1. Pre-Approve Visitor */}
         <button
-          onClick={() => setIsPreApproveModalOpen(true)}
-          className="group flex flex-col justify-between p-4 rounded-xl bg-white border border-slate-200 shadow-2xs hover:shadow-md hover:border-primary/50 transition-all text-left active:scale-[0.98]"
+          disabled={!isUnitVerified}
+          onClick={() => {
+            if (!isUnitVerified) {
+              showToast('Visitor pass pre-approval unlocks after Management verifies your apartment unit.', 'info');
+              return;
+            }
+            setIsPreApproveModalOpen(true);
+          }}
+          className={`group flex flex-col justify-between p-4 rounded-xl bg-white border border-slate-200 shadow-2xs transition-all text-left ${
+            isUnitVerified
+              ? 'hover:shadow-md hover:border-primary/50 active:scale-[0.98]'
+              : 'opacity-65 cursor-not-allowed'
+          }`}
         >
           <div className="flex items-center justify-between w-full">
             <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
               <span className="material-symbols-outlined text-[22px]">person_add</span>
             </div>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
-              Fast Pass
+              {isUnitVerified ? 'Fast Pass' : 'Locked'}
             </span>
           </div>
           <div className="mt-3">
             <div className="font-headline font-bold text-slate-900 text-sm">Pre-Approve</div>
-            <p className="text-[11px] text-slate-500 mt-0.5">Visitor / Cab Entry OTP</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {isUnitVerified ? 'Visitor / Cab Entry OTP' : 'Requires Verified Unit'}
+            </p>
           </div>
           <div className="mt-2.5 flex items-center gap-1 text-primary text-xs font-bold">
-            <span>Generate PIN</span>
-            <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            <span>{isUnitVerified ? 'Generate PIN' : 'Pending Verification'}</span>
+            <span className="material-symbols-outlined text-[14px]">
+              {isUnitVerified ? 'arrow_forward' : 'lock'}
+            </span>
           </div>
         </button>
 
@@ -175,20 +237,23 @@ export const ResidentHomeView: React.FC = () => {
             <p className="text-[11px] text-slate-500 mt-0.5">Society Maintenance</p>
           </div>
           {!userUnit ? (
-            <div className="mt-2.5 text-slate-400 text-xs font-medium">No flat linked</div>
+            <div className="mt-2.5 text-slate-400 text-xs font-medium">
+              {isUnitVerified ? 'No flat linked' : 'Pending verification'}
+            </div>
           ) : duesPaid ? (
             <div className="mt-2.5 flex items-center gap-1 text-emerald-600 text-xs font-bold">
               <span className="material-symbols-outlined text-[14px]">check_circle</span>
-              <span>Dues Paid</span>
+              <span>Ledger Settled (₹0 Due)</span>
             </div>
           ) : (
             <button
               onClick={handlePayDues}
               disabled={isPayingDues}
+              title="Demo/manual ledger settlement (no external payment gateway)"
               className="mt-2.5 flex items-center gap-1 text-primary text-xs font-bold hover:underline disabled:opacity-60"
             >
-              <span>{isPayingDues ? 'Processing...' : 'Pay via UPI'}</span>
-              <span className="material-symbols-outlined text-[14px]">bolt</span>
+              <span>{isPayingDues ? 'Recording...' : 'Record Demo Payment'}</span>
+              <span className="material-symbols-outlined text-[14px]">receipt_long</span>
             </button>
           )}
         </div>
@@ -253,7 +318,7 @@ export const ResidentHomeView: React.FC = () => {
             </span>
           </div>
           <button
-            onClick={() => setActiveTab('pass-revocation')}
+            onClick={() => setActiveTab('visitor-revocation')}
             className="text-xs font-bold text-primary hover:underline"
           >
             Manage All Passes

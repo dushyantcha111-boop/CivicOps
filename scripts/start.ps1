@@ -18,6 +18,6 @@ Write-Host "1. Backend:  cd backend && mvn spring-boot:run" -ForegroundColor Yel
 Write-Host "2. Frontend: npm run dev" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Local URLs:" -ForegroundColor Cyan
-Write-Host " - Frontend:    http://localhost:3000" -ForegroundColor White
-Write-Host " - Backend API: http://localhost:8080/api/v1" -ForegroundColor White
-Write-Host " - Health Check: http://localhost:8080/actuator/health" -ForegroundColor White
+Write-Host " - Frontend:     http://localhost:3000" -ForegroundColor White
+Write-Host " - Backend API:  http://localhost:8080/api/v1" -ForegroundColor White
+Write-Host " - Health Check: http://localhost:8080/api/v1/actuator/health" -ForegroundColor White

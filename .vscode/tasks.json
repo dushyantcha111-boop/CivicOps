@@ -2,11 +2,42 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "CivicOps: Start Full Local Stack",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File ./scripts/start-local.ps1",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "CivicOps: Stop Local Stack (Preserve DB)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File ./scripts/stop-local.ps1",
+      "problemMatcher": [],
+      "group": "none"
+    },
+    {
+      "label": "CivicOps: Verify Full Stack (Lint + Tests + Build)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File ./scripts/verify-local.ps1",
+      "problemMatcher": ["$tsc"],
+      "group": "test"
+    },
+    {
       "type": "npm",
       "script": "dev",
       "label": "Frontend: Start Vite Dev Server",
       "problemMatcher": ["$tsc"],
       "group": "none"
+    },
+    {
+      "type": "shell",
+      "command": "npm run lint && npm test && npm run build",
+      "label": "Frontend: Lint, Test & Build",
+      "problemMatcher": ["$tsc"],
+      "group": "test"
     },
     {
       "type": "shell",
@@ -17,6 +48,16 @@
       "label": "Backend: Start Spring Boot",
       "problemMatcher": [],
       "group": "none"
+    },
+    {
+      "type": "shell",
+      "command": "mvn test",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "label": "Backend: Maven Test Suite",
+      "problemMatcher": [],
+      "group": "test"
     },
     {
       "type": "shell",

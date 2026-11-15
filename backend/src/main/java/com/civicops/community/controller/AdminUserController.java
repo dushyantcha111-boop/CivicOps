@@ -1,8 +1,10 @@
 package com.civicops.community.controller;
 
 import com.civicops.community.model.Role;
+import com.civicops.community.model.Unit;
 import com.civicops.community.model.User;
 import com.civicops.community.model.UserResponseDto;
+import com.civicops.community.repository.UnitRepository;
 import com.civicops.community.repository.UserRepository;
 import com.civicops.community.service.AuditService;
 import jakarta.validation.Valid;
@@ -16,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 public class AdminUserController {
 
     private final UserRepository userRepository;
+    private final UnitRepository unitRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
 
@@ -49,6 +53,79 @@ public class AdminUserController {
                 .map(UserResponseDto::fromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(techs);
+    }
+
+    @GetMapping("/pending-verifications")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGEMENT')")
+    public ResponseEntity<List<UserResponseDto>> getPendingUnitVerifications() {
+        List<UserResponseDto> pending = userRepository.findByUnitVerificationStatus("PENDING_VERIFICATION").stream()
+                .map(UserResponseDto::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(pending);
+    }
+
+    @PostMapping("/{id}/verify-unit")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGEMENT')")
+    @Transactional
+    public ResponseEntity<UserResponseDto> verifyUnitClaim(
+            @PathVariable String id,
+            @RequestBody VerifyUnitRequest request
+    ) {
+        User actor = auditService.requireCurrentUser();
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + id));
+
+        if (request.isApprove()) {
+            String unitNo = (request.getUnitNumber() != null && !request.getUnitNumber().isBlank())
+                    ? request.getUnitNumber().trim().toUpperCase()
+                    : (target.getRequestedUnitNumber() != null ? target.getRequestedUnitNumber().trim().toUpperCase() : null);
+
+            if (unitNo == null || unitNo.isBlank()) {
+                throw new IllegalArgumentException("A valid unit number is required to approve unit verification.");
+            }
+
+            Unit unit = unitRepository.findByUnitNumber(unitNo)
+                    .orElseThrow(() -> new NoSuchElementException("Apartment unit not found in directory: " + unitNo));
+
+            String resolvedTower = (request.getTower() != null && !request.getTower().isBlank())
+                    ? request.getTower().trim()
+                    : unit.getTower();
+
+            target.setUnitId(unit.getId());
+            target.setUnitNumber(unit.getUnitNumber());
+            target.setTower(resolvedTower);
+            target.setUnitVerificationStatus("VERIFIED");
+            target.setUpdatedAt(LocalDateTime.now());
+
+            if (unit.getResidentUserId() == null || unit.getResidentUserId().isBlank()) {
+                unit.setResidentUserId(target.getId());
+                unitRepository.save(unit);
+            }
+
+            User saved = userRepository.save(target);
+            auditService.logAction(actor, "VERIFY_UNIT_CLAIM", "USER", saved.getId(),
+                    "Verified apartment unit " + unit.getUnitNumber() + " (" + resolvedTower + ") for " + saved.getEmail());
+            auditService.notify(saved.getId(), "RESIDENT", "Unit Verified: " + unit.getUnitNumber(),
+                    "Your apartment unit " + unit.getUnitNumber() + " (" + resolvedTower + ") has been verified by Management.",
+                    "USER", saved.getId());
+            return ResponseEntity.ok(UserResponseDto.fromEntity(saved));
+        } else {
+            target.setUnitId(null);
+            target.setUnitNumber(null);
+            target.setTower(null);
+            target.setUnitVerificationStatus("REJECTED");
+            target.setUpdatedAt(LocalDateTime.now());
+            User saved = userRepository.save(target);
+
+            String reason = request.getNotes() != null && !request.getNotes().isBlank()
+                    ? request.getNotes().trim()
+                    : "Claimed unit could not be matched with society ownership/tenancy records.";
+            auditService.logAction(actor, "REJECT_UNIT_CLAIM", "USER", saved.getId(),
+                    "Declined unit claim for " + saved.getEmail() + ": " + reason);
+            auditService.notify(saved.getId(), "RESIDENT", "Unit Verification Declined",
+                    reason, "USER", saved.getId());
+            return ResponseEntity.ok(UserResponseDto.fromEntity(saved));
+        }
     }
 
     @PostMapping
@@ -76,6 +153,7 @@ public class AdminUserController {
                 .authorizedRoles(parsedRoles.stream().map(Role::name).collect(Collectors.joining(",")))
                 .tower(request.getTower() != null ? request.getTower().trim() : "All Towers")
                 .unitNumber(request.getUnitNumber())
+                .unitVerificationStatus("VERIFIED")
                 .designation(request.getDesignation())
                 .avatarUrl("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=250")
                 .active(true)
@@ -166,5 +244,13 @@ public class AdminUserController {
     public static class UpdateRolesRequest {
         @NotEmpty(message = "At least one authorized role is required")
         private List<String> authorizedRoles;
+    }
+
+    @Data
+    public static class VerifyUnitRequest {
+        private boolean approve;
+        private String tower;
+        private String unitNumber;
+        private String notes;
     }
 }

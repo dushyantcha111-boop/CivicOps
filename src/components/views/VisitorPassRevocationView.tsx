@@ -31,6 +31,11 @@ export const VisitorPassRevocationView: React.FC = () => {
     currentUser?.role === 'ADMIN' ||
     currentUser?.role === 'RESIDENT';
 
+  const canCheckOut =
+    currentUser?.role === 'SECURITY' ||
+    currentUser?.role === 'MANAGEMENT' ||
+    currentUser?.role === 'ADMIN';
+
   const filteredPasses = useMemo(() => {
     return (visitorPasses || []).filter((pass) => {
       const overstay = computeOverstayMinutes(pass);
@@ -201,7 +206,7 @@ export const VisitorPassRevocationView: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-center">
-                    {pass.status === 'ENTERED' && canManagePasses && (
+                    {pass.status === 'ENTERED' && canCheckOut && (
                       <button
                         onClick={() => handleCheckOut(pass.id)}
                         className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"

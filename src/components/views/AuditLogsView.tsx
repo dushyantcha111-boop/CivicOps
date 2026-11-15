@@ -13,6 +13,8 @@ export const AuditLogsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('ALL');
   const [entityFilter, setEntityFilter] = useState('ALL');
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
 
   const fetchLogs = useCallback(async () => {
     if (!isAuthorized) {
@@ -62,6 +64,17 @@ export const AuditLogsView: React.FC = () => {
       )
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [logs, actionFilter, entityFilter, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedLogs = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredLogs.slice(start, start + pageSize);
+  }, [filteredLogs, safePage]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, actionFilter, entityFilter]);
 
   const handleExportCsv = () => {
     if (filteredLogs.length === 0) {
@@ -215,7 +228,7 @@ export const AuditLogsView: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((entry) => (
+                paginatedLogs.map((entry) => (
                   <tr key={entry.id} className="hover:bg-slate-50/70">
                     <td className="py-3 px-4 whitespace-nowrap text-slate-500 font-mono text-[11px]">
                       {new Date(entry.createdAt).toLocaleString()}
@@ -245,6 +258,33 @@ export const AuditLogsView: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {filteredLogs.length > 0 && (
+          <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+            <span>
+              Showing {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filteredLogs.length)} of{' '}
+              {filteredLogs.length} entries
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={safePage <= 1}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white font-bold disabled:opacity-40"
+              >
+                Prev
+              </button>
+              <span className="font-mono font-bold">
+                Page {safePage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage >= totalPages}
+                className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white font-bold disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

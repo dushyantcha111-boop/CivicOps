@@ -49,6 +49,9 @@ public class ComplaintWorkflowService {
         if (user.getRole() == Role.RESIDENT && !c.getResidentId().equals(user.getId())) {
             throw new AccessDeniedException("Residents may only access their own complaints.");
         }
+        if (user.getRole() == Role.MAINTENANCE && !user.getId().equals(c.getAssignedTechnicianId())) {
+            throw new AccessDeniedException("Maintenance technicians may only access complaints assigned to them.");
+        }
         return c;
     }
 
@@ -68,11 +71,28 @@ public class ComplaintWorkflowService {
             complaintRequest.setResidentId(currentUser.getId());
             complaintRequest.setResidentName(currentUser.getName());
             complaintRequest.setResidentPhone(currentUser.getPhone());
-            if (complaintRequest.getTower() == null || complaintRequest.getTower().isBlank()) {
-                complaintRequest.setTower(currentUser.getTower() != null ? currentUser.getTower() : "Tower A");
-            }
-            if (complaintRequest.getUnitNumber() == null || complaintRequest.getUnitNumber().isBlank()) {
-                complaintRequest.setUnitNumber(currentUser.getUnitNumber() != null ? currentUser.getUnitNumber() : "101");
+
+            if (currentUser.getRole() == Role.RESIDENT) {
+                if (currentUser.hasVerifiedUnit()) {
+                    complaintRequest.setTower(currentUser.getTower() != null ? currentUser.getTower() : "Tower A");
+                    complaintRequest.setUnitNumber(currentUser.getUnitNumber());
+                } else {
+                    String requestedTower = currentUser.getRequestedTower() != null && !currentUser.getRequestedTower().isBlank()
+                            ? currentUser.getRequestedTower()
+                            : (complaintRequest.getTower() != null && !complaintRequest.getTower().isBlank() ? complaintRequest.getTower() : "Unverified");
+                    String requestedUnit = currentUser.getRequestedUnitNumber() != null && !currentUser.getRequestedUnitNumber().isBlank()
+                            ? currentUser.getRequestedUnitNumber()
+                            : "PENDING";
+                    complaintRequest.setTower(requestedTower);
+                    complaintRequest.setUnitNumber("UNVERIFIED-" + requestedUnit);
+                }
+            } else {
+                if (complaintRequest.getTower() == null || complaintRequest.getTower().isBlank()) {
+                    complaintRequest.setTower(currentUser.getTower() != null ? currentUser.getTower() : "Tower A");
+                }
+                if (complaintRequest.getUnitNumber() == null || complaintRequest.getUnitNumber().isBlank()) {
+                    complaintRequest.setUnitNumber(currentUser.getUnitNumber() != null ? currentUser.getUnitNumber() : "Common Area");
+                }
             }
         }
 

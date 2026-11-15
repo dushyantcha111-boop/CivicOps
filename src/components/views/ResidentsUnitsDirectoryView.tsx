@@ -8,9 +8,12 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
 
   const [search, setSearch] = useState('');
   const [occupancyFilter, setOccupancyFilter] = useState<'ALL' | 'OWNER' | 'TENANT'>('ALL');
-  const [activeSubTab, setActiveSubTab] = useState<'DIRECTORY' | 'PAYMENTS'>('DIRECTORY');
+  const [activeSubTab, setActiveSubTab] = useState<'DIRECTORY' | 'PAYMENTS' | 'PENDING_CLAIMS'>('DIRECTORY');
   const [payments, setPayments] = useState<DuesPayment[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
+  const [pendingClaims, setPendingClaims] = useState<import('../../types').User[]>([]);
+  const [loadingClaims, setLoadingClaims] = useState(false);
+  const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
 
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [payingUnitId, setPayingUnitId] = useState<string | null>(null);
@@ -43,11 +46,32 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
     }
   };
 
+  const loadPendingClaims = async () => {
+    if (!canManageUnits) return;
+    setLoadingClaims(true);
+    try {
+      const data = await ApiService.getPendingUnitVerifications();
+      setPendingClaims(data || []);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to load pending unit claims', 'error');
+    } finally {
+      setLoadingClaims(false);
+    }
+  };
+
   useEffect(() => {
     if (activeSubTab === 'PAYMENTS') {
       loadPayments();
+    } else if (activeSubTab === 'PENDING_CLAIMS' && canManageUnits) {
+      loadPendingClaims();
     }
-  }, [activeSubTab]);
+  }, [activeSubTab, canManageUnits]);
+
+  useEffect(() => {
+    if (canManageUnits) {
+      loadPendingClaims();
+    }
+  }, [canManageUnits]);
 
   const filteredUnits = (units || []).filter((u) => {
     if (selectedTower !== 'All Towers' && u.tower !== selectedTower) return false;
@@ -73,16 +97,40 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
   const handlePayDues = async (unit: Unit) => {
     setPayingUnitId(unit.id);
     try {
-      const res = await ApiService.payUnitDues(unit.id, 'UPI / Society Ledger');
+      const res = await ApiService.payUnitDues(unit.id, 'Manual / Demo Ledger Entry');
       await refreshData();
       if (activeSubTab === 'PAYMENTS') {
         await loadPayments();
       }
-      showToast(`Dues settled for ${unit.unitNumber}. Ref: ${res.payment.paymentRef}`);
+      showToast(
+        `Recorded manual/demo dues settlement for ${unit.unitNumber} (Ref: ${res.payment.paymentRef}). No online gateway was charged.`
+      );
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Payment settlement failed', 'error');
+      showToast(err instanceof Error ? err.message : 'Ledger settlement failed', 'error');
     } finally {
       setPayingUnitId(null);
+    }
+  };
+
+  const handleVerifyClaim = async (claimUser: import('../../types').User, approve: boolean) => {
+    setVerifyingUserId(claimUser.id);
+    try {
+      await ApiService.verifyUnitClaim(claimUser.id, {
+        approve,
+        tower: claimUser.requestedTower,
+        unitNumber: claimUser.requestedUnitNumber
+      });
+      await Promise.all([loadPendingClaims(), refreshData()]);
+      showToast(
+        approve
+          ? `Approved unit ${claimUser.requestedUnitNumber || ''} for ${claimUser.name}.`
+          : `Declined unit claim for ${claimUser.name}.`,
+        approve ? 'success' : 'info'
+      );
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Verification action failed', 'error');
+    } finally {
+      setVerifyingUserId(null);
     }
   };
 
@@ -161,8 +209,23 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
                 activeSubTab === 'PAYMENTS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
               }`}
             >
-              Payment History
+              Demo Ledger History
             </button>
+            {canManageUnits && (
+              <button
+                onClick={() => setActiveSubTab('PENDING_CLAIMS')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  activeSubTab === 'PENDING_CLAIMS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
+                }`}
+              >
+                <span>Unit Claims</span>
+                {pendingClaims.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px]">
+                    {pendingClaims.length}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
 
           {canManageUnits && (
@@ -309,9 +372,10 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
                               <button
                                 onClick={() => handlePayDues(u)}
                                 disabled={payingUnitId === u.id}
+                                title="Records a manual/demo ledger settlement (no external payment gateway)"
                                 className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg font-bold text-xs transition-colors"
                               >
-                                {payingUnitId === u.id ? 'Paying...' : 'Pay Dues'}
+                                {payingUnitId === u.id ? 'Recording...' : 'Record Demo Payment'}
                               </button>
                             )}
                             <button
@@ -330,13 +394,18 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
             </div>
           </div>
         </>
-      ) : (
+      ) : activeSubTab === 'PAYMENTS' ? (
         /* Dues Payment History */
         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-            <h3 className="font-headline font-bold text-slate-900 text-sm">
-              Recorded Dues Payments Ledger
-            </h3>
+          <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="font-headline font-bold text-slate-900 text-sm">
+                Recorded Manual / Demo Dues Ledger
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Entries below record manual or demonstration dues settlements in PostgreSQL; no external UPI/card payment gateway is connected.
+              </p>
+            </div>
             <button
               onClick={loadPayments}
               className="text-xs font-bold text-primary hover:underline"
@@ -348,7 +417,7 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
             <div className="p-10 text-center text-xs text-slate-500">Loading payments...</div>
           ) : payments.length === 0 ? (
             <div className="p-10 text-center text-xs text-slate-500">
-              No dues payments recorded yet.
+              No dues settlements recorded yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -358,8 +427,8 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
                     <th className="py-3 px-4">Reference</th>
                     <th className="py-3 px-4">Flat #</th>
                     <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Method</th>
-                    <th className="py-3 px-4">Paid At</th>
+                    <th className="py-3 px-4">Entry Type</th>
+                    <th className="py-3 px-4">Recorded At</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -376,6 +445,74 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Pending Unit Claims Verification Queue */
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="font-headline font-bold text-slate-900 text-sm">
+                Pending Resident Unit Claims
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Public signup accounts remain unlinked until Management verifies the claimed flat against the unit directory.
+              </p>
+            </div>
+            <button
+              onClick={loadPendingClaims}
+              className="text-xs font-bold text-primary hover:underline"
+            >
+              Refresh Queue
+            </button>
+          </div>
+          {loadingClaims ? (
+            <div className="p-10 text-center text-xs text-slate-500">Loading pending unit claims...</div>
+          ) : pendingClaims.length === 0 ? (
+            <div className="p-10 text-center text-xs text-slate-500">
+              No pending unit verification claims in queue.
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {pendingClaims.map((claim) => (
+                <div
+                  key={claim.id}
+                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-900 text-sm">{claim.name}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                        PENDING VERIFICATION
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {claim.email} • {claim.phone}
+                    </div>
+                    <div className="text-xs font-semibold text-primary mt-1">
+                      Claimed Unit: {claim.requestedTower || 'Unspecified Tower'} —{' '}
+                      {claim.requestedUnitNumber || 'Unspecified Flat'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      onClick={() => handleVerifyClaim(claim, true)}
+                      disabled={verifyingUserId === claim.id || !claim.requestedUnitNumber}
+                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+                    >
+                      {verifyingUserId === claim.id ? 'Processing...' : 'Verify & Link Unit'}
+                    </button>
+                    <button
+                      onClick={() => handleVerifyClaim(claim, false)}
+                      disabled={verifyingUserId === claim.id}
+                      className="px-3.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 rounded-lg text-xs font-bold"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

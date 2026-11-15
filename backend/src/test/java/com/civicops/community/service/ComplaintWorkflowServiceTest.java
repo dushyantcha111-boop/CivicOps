@@ -149,4 +149,60 @@ class ComplaintWorkflowServiceTest {
         assertEquals("Water is still leaking", result.getDisputeReason());
         verify(complaintRepository, times(1)).save(any(Complaint.class));
     }
+
+    @Test
+    void testGetComplaintForUserRestrictsUnassignedMaintenanceTechnician() {
+        testComplaint.setAssignedTechnicianId("usr-tech-01");
+        when(complaintRepository.findById("cmp-test-01")).thenReturn(Optional.of(testComplaint));
+
+        User assignedTech = User.builder()
+                .id("usr-tech-01")
+                .name("Assigned Tech")
+                .role(Role.MAINTENANCE)
+                .authorizedRoles("MAINTENANCE")
+                .build();
+        User otherTech = User.builder()
+                .id("usr-tech-02")
+                .name("Other Tech")
+                .role(Role.MAINTENANCE)
+                .authorizedRoles("MAINTENANCE")
+                .build();
+
+        assertEquals("cmp-test-01", workflowService.getComplaintForUser("cmp-test-01", assignedTech).getId());
+        assertThrows(AccessDeniedException.class, () ->
+                workflowService.getComplaintForUser("cmp-test-01", otherTech)
+        );
+    }
+
+    @Test
+    void testSubmitComplaintPreventsUnverifiedResidentSpoofingVerifiedUnit() {
+        User unverifiedResident = User.builder()
+                .id("usr-pending-01")
+                .name("Pending Resident")
+                .email("pending@greenvalley.in")
+                .phone("9000000001")
+                .role(Role.RESIDENT)
+                .authorizedRoles("RESIDENT")
+                .requestedTower("Tower B")
+                .requestedUnitNumber("B-402")
+                .unitVerificationStatus("PENDING_VERIFICATION")
+                .build();
+
+        Complaint spoofAttempt = new Complaint();
+        spoofAttempt.setTitle("Water issue");
+        spoofAttempt.setDescription("Spoof attempt on B-402");
+        spoofAttempt.setCategory(Complaint.ComplaintCategory.PLUMBING);
+        spoofAttempt.setSeverity(Complaint.ComplaintSeverity.MEDIUM);
+        spoofAttempt.setTower("Tower B");
+        spoofAttempt.setUnitNumber("B-402");
+
+        when(complaintRepository.count()).thenReturn(10L);
+        when(complaintRepository.findSimilarActiveComplaints(any(), any())).thenReturn(Collections.emptyList());
+        when(complaintRepository.save(any(Complaint.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Complaint saved = workflowService.submitComplaint(spoofAttempt, unverifiedResident);
+
+        assertEquals("UNVERIFIED-B-402", saved.getUnitNumber());
+        assertEquals("usr-pending-01", saved.getResidentId());
+    }
 }

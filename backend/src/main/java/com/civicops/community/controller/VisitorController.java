@@ -35,8 +35,11 @@ public class VisitorController {
     @GetMapping
     public ResponseEntity<List<VisitorPass>> getAllVisitorPasses() {
         User currentUser = auditService.requireCurrentUser();
-        if (currentUser.getRole() == Role.RESIDENT && currentUser.getUnitNumber() != null) {
-            return ResponseEntity.ok(visitorPassRepository.findByUnitNumber(currentUser.getUnitNumber()));
+        if (currentUser.getRole() == Role.RESIDENT) {
+            if (currentUser.hasVerifiedUnit()) {
+                return ResponseEntity.ok(visitorPassRepository.findByUnitNumber(currentUser.getUnitNumber()));
+            }
+            return ResponseEntity.ok(List.of());
         }
         return ResponseEntity.ok(visitorPassRepository.findAll());
     }
@@ -45,6 +48,10 @@ public class VisitorController {
     @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGEMENT', 'ADMIN')")
     public ResponseEntity<VisitorPass> preApproveVisitor(@Valid @RequestBody PreApproveRequest request) {
         User currentUser = auditService.requireCurrentUser();
+        if (currentUser.getRole() == Role.RESIDENT && !currentUser.hasVerifiedUnit()) {
+            throw new AccessDeniedException("Your apartment unit claim is pending Management verification. Visitor pre-approval unlocks once verified.");
+        }
+
         String passSeq = String.format("%04d", secureRandom.nextInt(9000) + 1000);
         String pin = String.format("%06d", secureRandom.nextInt(900000) + 100000);
         LocalDateTime now = LocalDateTime.now();
@@ -138,9 +145,8 @@ public class VisitorController {
                 .orElseThrow(() -> new NoSuchElementException("Pass not found: " + id));
 
         if (currentUser.getRole() == Role.RESIDENT
-                && currentUser.getUnitNumber() != null
-                && !pass.getUnitNumber().equalsIgnoreCase(currentUser.getUnitNumber())) {
-            throw new AccessDeniedException("Residents may only revoke visitor passes for their own unit.");
+                && (!currentUser.hasVerifiedUnit() || !pass.getUnitNumber().equalsIgnoreCase(currentUser.getUnitNumber()))) {
+            throw new AccessDeniedException("Residents may only revoke visitor passes for their own verified unit.");
         }
 
         if ("EXITED".equalsIgnoreCase(pass.getStatus())) {

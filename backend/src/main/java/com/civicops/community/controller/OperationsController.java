@@ -41,6 +41,9 @@ public class OperationsController {
     public ResponseEntity<List<Unit>> getAllUnits() {
         User currentUser = auditService.requireCurrentUser();
         if (currentUser.getRole() == Role.RESIDENT) {
+            if (!currentUser.hasVerifiedUnit()) {
+                return ResponseEntity.ok(List.of());
+            }
             if (currentUser.getUnitNumber() != null) {
                 return unitRepository.findByUnitNumber(currentUser.getUnitNumber())
                         .map(List::of)
@@ -93,6 +96,9 @@ public class OperationsController {
                 .orElseThrow(() -> new NoSuchElementException("Unit not found: " + id));
 
         if (actor.getRole() == Role.RESIDENT) {
+            if (!actor.hasVerifiedUnit()) {
+                throw new AccessDeniedException("Your apartment unit claim must be verified by Management before settling dues.");
+            }
             boolean ownsByUnitNo = actor.getUnitNumber() != null && unit.getUnitNumber().equalsIgnoreCase(actor.getUnitNumber());
             boolean ownsById = unit.getResidentUserId() != null && unit.getResidentUserId().equals(actor.getId());
             if (!ownsByUnitNo && !ownsById) {
@@ -105,8 +111,11 @@ public class OperationsController {
         }
 
         BigDecimal paidAmount = unit.getDuesAmount();
-        String method = body != null ? body.getOrDefault("paymentMethod", "UPI / NetBanking") : "UPI / NetBanking";
-        String paymentRef = "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String rawMethod = body != null ? body.getOrDefault("paymentMethod", "Manual / Demo Ledger Entry") : "Manual / Demo Ledger Entry";
+        String method = (rawMethod != null && (rawMethod.toLowerCase().contains("demo") || rawMethod.toLowerCase().contains("manual") || rawMethod.toLowerCase().contains("ledger")))
+                ? rawMethod
+                : "Manual / Demo Ledger (" + rawMethod + ")";
+        String paymentRef = "LEDGER-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         DuesPayment payment = DuesPayment.builder()
                 .id("dues-" + UUID.randomUUID().toString().substring(0, 8))
@@ -124,8 +133,8 @@ public class OperationsController {
         unit.setDuesStatus("PAID");
         Unit savedUnit = unitRepository.save(unit);
 
-        auditService.logAction(actor, "PAY_MAINTENANCE_DUES", "UNIT", unit.getId(),
-                "Settled INR " + paidAmount + " for unit " + unit.getUnitNumber() + " (Ref: " + paymentRef + ")");
+        auditService.logAction(actor, "RECORD_DEMO_DUES_PAYMENT", "UNIT", unit.getId(),
+                "Recorded manual/demo ledger settlement of INR " + paidAmount + " for unit " + unit.getUnitNumber() + " (Ref: " + paymentRef + ")");
 
         return ResponseEntity.ok(Map.of(
                 "unit", savedUnit,
@@ -148,8 +157,11 @@ public class OperationsController {
     @GetMapping("/parcels")
     public ResponseEntity<List<Parcel>> getAllParcels() {
         User currentUser = auditService.requireCurrentUser();
-        if (currentUser.getRole() == Role.RESIDENT && currentUser.getUnitNumber() != null) {
-            return ResponseEntity.ok(parcelRepository.findByUnitNumber(currentUser.getUnitNumber()));
+        if (currentUser.getRole() == Role.RESIDENT) {
+            if (currentUser.hasVerifiedUnit()) {
+                return ResponseEntity.ok(parcelRepository.findByUnitNumber(currentUser.getUnitNumber()));
+            }
+            return ResponseEntity.ok(List.of());
         }
         return ResponseEntity.ok(parcelRepository.findAll());
     }
@@ -195,9 +207,8 @@ public class OperationsController {
                 .orElseThrow(() -> new NoSuchElementException("Parcel not found: " + id));
 
         if (actor.getRole() == Role.RESIDENT
-                && actor.getUnitNumber() != null
-                && !parcel.getUnitNumber().equalsIgnoreCase(actor.getUnitNumber())) {
-            throw new AccessDeniedException("Residents may only collect parcels belonging to their unit.");
+                && (!actor.hasVerifiedUnit() || !parcel.getUnitNumber().equalsIgnoreCase(actor.getUnitNumber()))) {
+            throw new AccessDeniedException("Residents may only collect parcels belonging to their verified unit.");
         }
 
         if ("COLLECTED".equalsIgnoreCase(parcel.getStatus())) {
@@ -229,6 +240,7 @@ public class OperationsController {
     public ResponseEntity<IncidentAlert> triggerSos(@Valid @RequestBody SosRequest request) {
         User actor = auditService.requireCurrentUser();
         long count = incidentAlertRepository.count() + 10;
+        int notifiedUnits = (int) unitRepository.count();
         IncidentAlert alert = IncidentAlert.builder()
                 .id("inc-" + UUID.randomUUID().toString().substring(0, 8))
                 .alertCode(String.format("SOS-2024-%03d", count))
@@ -241,7 +253,7 @@ public class OperationsController {
                 .reportedAt(LocalDateTime.now())
                 .status("ACTIVE")
                 .broadcastSent(true)
-                .smsSentCount(480)
+                .smsSentCount(notifiedUnits)
                 .build();
         alert.setActionsTaken(List.of("Emergency alert logged by " + actor.getName(), "Security command desk notified"));
 

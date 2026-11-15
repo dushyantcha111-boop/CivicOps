@@ -163,6 +163,25 @@ export const SettingsRolesPermissionsView: React.FC = () => {
     }
   };
 
+  const handleQuickVerifyUnit = async (user: User, approve: boolean) => {
+    try {
+      await ApiService.verifyUnitClaim(user.id, {
+        approve,
+        tower: user.requestedTower,
+        unitNumber: user.requestedUnitNumber
+      });
+      await loadUsers();
+      showToast(
+        approve
+          ? `Verified unit ${user.requestedUnitNumber || ''} for ${user.name}.`
+          : `Declined unit claim for ${user.name}.`,
+        approve ? 'success' : 'info'
+      );
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unit verification failed', 'error');
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const roles = u.authorizedRoles || [u.role];
     if (roleFilter !== 'ALL' && !roles.includes(roleFilter as UserRole)) return false;
@@ -260,7 +279,24 @@ export const SettingsRolesPermissionsView: React.FC = () => {
                         <div className="text-[11px] text-slate-500">{u.email} • {u.phone}</div>
                       </td>
                       <td className="py-3 px-4 text-slate-700">
-                        <div>{u.unitNumber ? `${u.tower || ''} • ${u.unitNumber}` : 'Staff / Operations'}</div>
+                        <div>
+                          {u.unitNumber
+                            ? `${u.tower || ''} • ${u.unitNumber}`
+                            : u.requestedUnitNumber
+                            ? `Claimed: ${u.requestedTower || ''} • ${u.requestedUnitNumber}`
+                            : 'Staff / Operations'}
+                        </div>
+                        {u.unitVerificationStatus && u.unitVerificationStatus !== 'VERIFIED' && (
+                          <span
+                            className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              u.unitVerificationStatus === 'PENDING_VERIFICATION'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-red-100 text-red-700'
+                            }`}
+                          >
+                            {u.unitVerificationStatus.replace('_', ' ')}
+                          </span>
+                        )}
                         {u.designation && <div className="text-[11px] text-slate-400">{u.designation}</div>}
                       </td>
                       <td className="py-3 px-4">
@@ -285,6 +321,14 @@ export const SettingsRolesPermissionsView: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right space-x-1.5">
+                        {u.unitVerificationStatus === 'PENDING_VERIFICATION' && u.requestedUnitNumber && (
+                          <button
+                            onClick={() => handleQuickVerifyUnit(u, true)}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs"
+                          >
+                            Verify Unit
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             setEditingUser(u);

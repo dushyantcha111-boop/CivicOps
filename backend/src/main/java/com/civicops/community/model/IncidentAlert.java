@@ -55,7 +55,7 @@ public class IncidentAlert {
 
     @Column(name = "sms_sent_count")
     @Builder.Default
-    private Integer smsSentCount = 480;
+    private Integer smsSentCount = 0;
 
     @JsonIgnore
     @Column(name = "actions_taken", columnDefinition = "TEXT")
