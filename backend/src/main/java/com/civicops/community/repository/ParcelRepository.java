@@ -12,5 +12,6 @@ public interface ParcelRepository extends JpaRepository<Parcel, String> {
     Optional<Parcel> findByTrackingNumber(String trackingNumber);
     Optional<Parcel> findByPickupOtp(String pickupOtp);
     List<Parcel> findByTowerAndUnitNumber(String tower, String unitNumber);
+    List<Parcel> findByUnitNumber(String unitNumber);
     List<Parcel> findByStatus(String status);
 }

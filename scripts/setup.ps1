@@ -9,6 +9,12 @@ if (!(Test-Path ".env")) {
         Write-Host "[INFO] Created root .env file from .env.example" -ForegroundColor Green
     }
 }
+if (!(Test-Path "backend\.env")) {
+    if (Test-Path "backend\.env.example") {
+        Copy-Item "backend\.env.example" "backend\.env"
+        Write-Host "[INFO] Created backend\.env file from backend\.env.example" -ForegroundColor Green
+    }
+}
 
 # 2. Install Frontend Dependencies
 Write-Host "[INFO] Installing frontend dependencies (npm ci)..." -ForegroundColor Cyan

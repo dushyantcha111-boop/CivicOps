@@ -1,9 +1,13 @@
 package com.civicops.community.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "units")
@@ -49,7 +53,7 @@ public class Unit {
     @Builder.Default
     private String occupancyStatus = "OCCUPIED";
 
-    @Column(name = "dues_amount")
+    @Column(name = "dues_amount", precision = 10, scale = 2)
     @Builder.Default
     private BigDecimal duesAmount = BigDecimal.ZERO;
 
@@ -57,7 +61,24 @@ public class Unit {
     @Builder.Default
     private String duesStatus = "PAID";
 
+    @JsonIgnore
+    @Column(name = "registered_vehicles", columnDefinition = "TEXT")
+    private String registeredVehiclesJson;
+
+    @Column(name = "resident_user_id", length = 64)
+    private String residentUserId;
+
     @Column(name = "created_at", updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @JsonProperty("registeredVehicles")
+    public List<String> getRegisteredVehicles() {
+        return JsonFieldHelper.readList(registeredVehiclesJson, new TypeReference<>() {});
+    }
+
+    @JsonProperty("registeredVehicles")
+    public void setRegisteredVehicles(List<String> vehicles) {
+        this.registeredVehiclesJson = JsonFieldHelper.writeList(vehicles);
+    }
 }

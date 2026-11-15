@@ -1,8 +1,12 @@
 package com.civicops.community.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "incident_alerts")
@@ -52,4 +56,27 @@ public class IncidentAlert {
     @Column(name = "sms_sent_count")
     @Builder.Default
     private Integer smsSentCount = 480;
+
+    @JsonIgnore
+    @Column(name = "actions_taken", columnDefinition = "TEXT")
+    private String actionsTakenJson;
+
+    @Column(name = "resolved_at")
+    private LocalDateTime resolvedAt;
+
+    @Column(name = "resolved_by", length = 120)
+    private String resolvedBy;
+
+    @Column(name = "resolution_notes", columnDefinition = "TEXT")
+    private String resolutionNotes;
+
+    @JsonProperty("actionsTaken")
+    public List<String> getActionsTaken() {
+        return JsonFieldHelper.readList(actionsTakenJson, new TypeReference<>() {});
+    }
+
+    @JsonProperty("actionsTaken")
+    public void setActionsTaken(List<String> actions) {
+        this.actionsTakenJson = JsonFieldHelper.writeList(actions);
+    }
 }

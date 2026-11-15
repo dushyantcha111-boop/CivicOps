@@ -1,5 +1,6 @@
 package com.civicops.community.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class User {
     @Column(nullable = false, length = 30)
     private String phone;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -48,6 +50,10 @@ public class User {
 
     private String designation;
 
+    @Builder.Default
+    @Column(name = "active")
+    private Boolean active = true;
+
     public java.util.List<Role> getAuthorizedRoleList() {
         if (authorizedRoles == null || authorizedRoles.isBlank()) {
             return role != null ? java.util.List.of(role) : java.util.List.of(Role.RESIDENT);
@@ -63,9 +69,15 @@ public class User {
                     }
                 })
                 .filter(java.util.Objects::nonNull)
+                .distinct()
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    @Builder.Default
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Builder.Default
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

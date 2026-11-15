@@ -13,4 +13,5 @@ public interface VisitorPassRepository extends JpaRepository<VisitorPass, String
     Optional<VisitorPass> findBySixDigitPin(String sixDigitPin);
     List<VisitorPass> findByTower(String tower);
     List<VisitorPass> findByStatus(String status);
+    List<VisitorPass> findByUnitNumber(String unitNumber);
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { isTabAllowedForRole } from '../../config/rbac';
 
 interface NavItem {
   id: string;
@@ -15,7 +16,17 @@ interface NavSection {
 }
 
 export const Sidebar: React.FC = () => {
-  const { activeTab, setActiveTab, complaints, requisitions, incidents, role, currentUser, logout } = useApp();
+  const {
+    activeTab,
+    setActiveTab,
+    complaints,
+    requisitions,
+    incidents,
+    unreadNotificationsCount,
+    role,
+    currentUser,
+    logout
+  } = useApp();
 
   const activeComplaintsCount = complaints.filter(
     (c) => c.status !== 'CLOSED' && c.status !== 'RESIDENT_CONFIRMED'
@@ -24,12 +35,27 @@ export const Sidebar: React.FC = () => {
   const pendingRequisitionsCount = requisitions.filter((r) => r.status === 'PENDING_APPROVAL').length;
   const activeIncidentsCount = incidents.filter((i) => i.status === 'ACTIVE').length;
 
-  const sections: NavSection[] = [
+  const rawSections: NavSection[] = [
+    {
+      title: 'Resident & Community',
+      items: [
+        { id: 'resident-home', label: 'Resident Portal', icon: 'home_app_logo' },
+        { id: 'raise-complaint', label: 'Raise Complaint', icon: 'add_circle' },
+        { id: 'resident-signoff', label: 'Resolution Sign-Off', icon: 'fact_check' },
+        { id: 'community-hub', label: 'Notices, Events & Docs', icon: 'campaign' },
+        {
+          id: 'notifications',
+          label: 'Notifications',
+          icon: 'notifications',
+          badge: unreadNotificationsCount > 0 ? `${unreadNotificationsCount}` : undefined,
+          badgeColor: 'bg-blue-100 text-blue-700'
+        }
+      ]
+    },
     {
       title: 'Command Center',
       items: [
         { id: 'management-overview', label: 'Executive Overview', icon: 'grid_view' },
-        { id: 'resident-home', label: 'Resident Portal', icon: 'home_app_logo', badge: role === 'RESIDENT' ? 'Active' : undefined, badgeColor: 'bg-blue-100 text-blue-700' },
         {
           id: 'complaint-operations',
           label: 'Complaint Operations',
@@ -54,6 +80,7 @@ export const Sidebar: React.FC = () => {
         { id: 'maintenance-dashboard', label: 'Maintenance Hub', icon: 'home_repair_service' },
         { id: 'assigned-work-orders', label: 'Assigned Work Orders', icon: 'engineering' },
         { id: 'work-order-details', label: 'Work Order Details', icon: 'assignment' },
+        { id: 'inspection-proposal', label: 'Inspection & Proposal', icon: 'build_circle' },
         { id: 'preventive-maintenance', label: 'Preventive Calendar', icon: 'event_repeat' },
         { id: 'asset-register', label: 'Asset Register', icon: 'inventory_2' },
         { id: 'spares-inventory', label: 'Spares Inventory & PO', icon: 'layers' },
@@ -85,9 +112,19 @@ export const Sidebar: React.FC = () => {
     },
     {
       title: 'Governance',
-      items: [{ id: 'settings-roles', label: 'Role Permissions & RBAC', icon: 'tune' }]
+      items: [
+        { id: 'audit-logs', label: 'Audit Trail', icon: 'history_edu' },
+        { id: 'settings-roles', label: 'User & Role Admin', icon: 'manage_accounts' }
+      ]
     }
   ];
+
+  const sections = rawSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => isTabAllowedForRole(role, item.id))
+    }))
+    .filter((section) => section.items.length > 0);
 
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-slate-200 z-50 flex-col justify-between overflow-y-auto shadow-[0_1px_8px_rgba(0,0,0,0.03)]">
@@ -107,7 +144,7 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
 
-        {/* Navigation sections */}
+        {/* Navigation sections strictly filtered by active role */}
         <nav className="flex flex-col p-2 gap-4">
           {sections.map((section) => (
             <div key={section.title} className="flex flex-col">
@@ -161,7 +198,7 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center gap-2 min-w-0">
             <img
               src={currentUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-              alt={currentUser?.name}
+              alt={currentUser?.name || 'Member'}
               className="w-7 h-7 rounded-full object-cover border border-slate-200 shrink-0"
             />
             <div className="flex flex-col min-w-0">
@@ -180,14 +217,6 @@ export const Sidebar: React.FC = () => {
           >
             <span className="material-symbols-outlined text-[18px]">logout</span>
           </button>
-        </div>
-
-        <div className="flex items-center justify-between px-2.5 py-1 text-[11px] text-slate-500">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-semibold text-slate-600">Hub Active</span>
-          </div>
-          <span className="text-[10px] text-slate-400 font-mono">v3.8.2</span>
         </div>
       </div>
     </aside>

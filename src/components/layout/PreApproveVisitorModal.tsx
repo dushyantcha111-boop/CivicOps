@@ -17,13 +17,14 @@ export const PreApproveVisitorModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) return;
     setIsSubmitting(true);
     try {
       const pass = await ApiService.createVisitorPass({
-        visitorName,
-        visitorPhone,
+        visitorName: visitorName.trim(),
+        visitorPhone: visitorPhone.trim(),
         visitorType,
-        vehicleNumber: vehicleNumber || undefined,
+        vehicleNumber: vehicleNumber.trim() || undefined,
         tower: currentUser.tower || 'Tower B',
         unitNumber: currentUser.unitNumber || 'B-402',
         residentName: currentUser.name,
@@ -33,8 +34,8 @@ export const PreApproveVisitorModal: React.FC = () => {
       setGeneratedPass(pass);
       await refreshData();
       showToast(`Visitor Fast Pass ${pass.passCode} generated successfully!`);
-    } catch (err) {
-      showToast('Failed to create visitor pass', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to create visitor pass', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -152,9 +153,10 @@ export const PreApproveVisitorModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number (Optional)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
               <input
                 type="tel"
+                required
                 value={visitorPhone}
                 onChange={(e) => setVisitorPhone(e.target.value)}
                 placeholder="+91 99887 76655"

@@ -15,19 +15,21 @@ export const EmergencySOSModal: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const fullLocation = details.trim() ? `${location} — ${details.trim()}` : location;
       await ApiService.triggerEmergencySos({
         title: `EMERGENCY ALERT: ${category.replace('_', ' ')} reported in ${location}`,
         category,
-        tower: selectedTower === 'All Towers' ? 'Tower B' : selectedTower,
-        location,
-        reportedBy: `${currentUser.name} (${currentUser.role})`
+        tower: selectedTower === 'All Towers' ? currentUser?.tower || 'Tower B' : selectedTower,
+        location: fullLocation,
+        severity: 'SOS_EMERGENCY'
       });
 
       await refreshData();
-      showToast('CRITICAL EMERGENCY BROADCAST DISPATCHED TO 480 RESIDENTS & GUARDHOUSE', 'error');
+      showToast('CRITICAL EMERGENCY BROADCAST DISPATCHED TO RESIDENTS & GUARDHOUSE', 'error');
+      setDetails('');
       setIsSosModalOpen(false);
-    } catch (err) {
-      showToast('Failed to trigger emergency alert', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to trigger emergency alert', 'error');
     } finally {
       setIsSubmitting(false);
     }

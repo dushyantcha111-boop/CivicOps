@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface UnitRepository extends JpaRepository<Unit, String> {
     Optional<Unit> findByUnitNumber(String unitNumber);
     List<Unit> findByTower(String tower);
+    List<Unit> findByResidentUserId(String residentUserId);
 }

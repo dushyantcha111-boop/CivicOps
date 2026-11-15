@@ -13,4 +13,4 @@ COPY --from=build /app/target/civicops-community-backend-1.0.0.jar app.jar
 EXPOSE 8080
 ENV PORT=8080
 
-ENTRYPOINT ["java", "-Dserver.port=${PORT}", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT} -jar app.jar"]

@@ -22,6 +22,9 @@ public class PreventiveSchedule {
     @Column(nullable = false, length = 200)
     private String title;
 
+    @Column(name = "asset_id", length = 64)
+    private String assetId;
+
     @Column(name = "asset_name", nullable = false, length = 150)
     private String assetName;
 

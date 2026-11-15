@@ -1,121 +1,98 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import {
-  DEMO_USERS,
-  INITIAL_UNITS,
-  INITIAL_COMPLAINTS,
-  INITIAL_WORK_ORDERS,
-  INITIAL_ASSETS,
-  INITIAL_SPARES,
-  INITIAL_REQUISITIONS,
-  INITIAL_VISITOR_PASSES,
-  INITIAL_PARCELS,
-  INITIAL_INCIDENTS,
-  INITIAL_PREVENTIVE_SCHEDULES
-} from '../data/initialData';
-import {
-  User,
-  UserRole,
-  Unit,
-  Complaint,
-  ComplaintStatus,
-  WorkOrder,
+  Announcement,
+  AppNotification,
   Asset,
+  AuditLogEntry,
+  CommunityDocument,
+  CommunityEvent,
+  Complaint,
+  DuesPayment,
+  IncidentAlert,
+  InventoryMovement,
+  MemoryGraphData,
+  Parcel,
+  PreventiveCompletionLog,
+  PreventiveSchedule,
+  RecurrenceCluster,
+  ReliabilityRadarData,
   SparePart,
   SpareRequisition,
+  Unit,
+  User,
+  UserRole,
   VisitorPass,
-  Parcel,
-  IncidentAlert,
-  PreventiveSchedule
+  WorkOrder
 } from '../types';
 
-const STORAGE_KEY_PREFIX = 'civicops_data_v1_';
-
-function getStored<T>(key: string, defaultValue: T): T {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY_PREFIX + key);
-    if (!raw) return defaultValue;
-    return JSON.parse(raw);
-  } catch (e) {
-    return defaultValue;
-  }
-}
-
-function setStored<T>(key: string, value: T): void {
-  try {
-    sessionStorage.setItem(STORAGE_KEY_PREFIX + key, JSON.stringify(value));
-  } catch (e) {
-    // Ignore storage errors
-  }
-}
-
-// In-memory / persistent repository fallback
-class LocalDatabase {
-  users: User[] = getStored('users', DEMO_USERS);
-  units: Unit[] = getStored('units', INITIAL_UNITS);
-  complaints: Complaint[] = getStored('complaints', INITIAL_COMPLAINTS);
-  workOrders: WorkOrder[] = getStored('workOrders', INITIAL_WORK_ORDERS);
-  assets: Asset[] = getStored('assets', INITIAL_ASSETS);
-  spares: SparePart[] = getStored('spares', INITIAL_SPARES);
-  requisitions: SpareRequisition[] = getStored('requisitions', INITIAL_REQUISITIONS);
-  visitorPasses: VisitorPass[] = getStored('visitorPasses', INITIAL_VISITOR_PASSES);
-  parcels: Parcel[] = getStored('parcels', INITIAL_PARCELS);
-  incidents: IncidentAlert[] = getStored('incidents', INITIAL_INCIDENTS);
-  preventiveSchedules: PreventiveSchedule[] = getStored('preventiveSchedules', INITIAL_PREVENTIVE_SCHEDULES);
-
-  saveAll() {
-    setStored('users', this.users);
-    setStored('units', this.units);
-    setStored('complaints', this.complaints);
-    setStored('workOrders', this.workOrders);
-    setStored('assets', this.assets);
-    setStored('spares', this.spares);
-    setStored('requisitions', this.requisitions);
-    setStored('visitorPasses', this.visitorPasses);
-    setStored('parcels', this.parcels);
-    setStored('incidents', this.incidents);
-    setStored('preventiveSchedules', this.preventiveSchedules);
-  }
-
-  resetToDefaults() {
-    this.users = [...DEMO_USERS];
-    this.units = [...INITIAL_UNITS];
-    this.complaints = [...INITIAL_COMPLAINTS];
-    this.workOrders = [...INITIAL_WORK_ORDERS];
-    this.assets = [...INITIAL_ASSETS];
-    this.spares = [...INITIAL_SPARES];
-    this.requisitions = [...INITIAL_REQUISITIONS];
-    this.visitorPasses = [...INITIAL_VISITOR_PASSES];
-    this.parcels = [...INITIAL_PARCELS];
-    this.incidents = [...INITIAL_INCIDENTS];
-    this.preventiveSchedules = [...INITIAL_PREVENTIVE_SCHEDULES];
-    this.saveAll();
-  }
-}
-
-export const db = new LocalDatabase();
-
-// Centralized Axios API client configured for Spring Boot backend
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: import.meta.env?.VITE_API_BASE_URL || '/api/v1',
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 5000
+  timeout: 15000
 });
 
-// Dynamic JWT Bearer token management
-let currentJwtToken: string | null = sessionStorage.getItem('civicops_token');
+let currentJwtToken: string | null =
+  typeof window !== 'undefined' ? sessionStorage.getItem('civicops_token') : null;
+
+let unauthorizedHandler: (() => void) | null = null;
+
+export const registerUnauthorizedHandler = (handler: (() => void) | null) => {
+  unauthorizedHandler = handler;
+};
 
 export const setAuthToken = (token: string | null) => {
   currentJwtToken = token;
-  if (token) {
-    sessionStorage.setItem('civicops_token', token);
-  } else {
-    sessionStorage.removeItem('civicops_token');
+  if (typeof window !== 'undefined') {
+    if (token) {
+      sessionStorage.setItem('civicops_token', token);
+    } else {
+      sessionStorage.removeItem('civicops_token');
+    }
   }
 };
 
 export const getAuthToken = () => currentJwtToken;
+
+export function normalizeUser(raw: any): User {
+  if (!raw) return raw;
+  const resolvedRole: UserRole = raw.role || raw.activeRole || 'RESIDENT';
+  return {
+    ...raw,
+    role: resolvedRole,
+    activeRole: raw.activeRole || resolvedRole,
+    authorizedRoles:
+      Array.isArray(raw.authorizedRoles) && raw.authorizedRoles.length > 0
+        ? raw.authorizedRoles
+        : [resolvedRole]
+  };
+}
+
+export function extractApiErrorMessage(err: unknown, fallback = 'Operation failed'): string {
+  const axiosErr = err as AxiosError<{ error?: string; message?: string } | string>;
+  const data = axiosErr?.response?.data;
+  if (data) {
+    if (typeof data === 'string' && data.trim()) {
+      return data;
+    }
+    if (typeof data === 'object') {
+      if (data.error) {
+        return data.error;
+      }
+      if (data.message) {
+        return data.message;
+      }
+    }
+  }
+  if (axiosErr?.code === 'ECONNABORTED' || axiosErr?.message === 'Network Error') {
+    return 'Unable to reach CivicOps backend API. Verify the Spring Boot server is running.';
+  }
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  return fallback;
+}
 
 apiClient.interceptors.request.use((config) => {
   if (currentJwtToken) {
@@ -124,28 +101,39 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// REST API Service layer with real backend calls & reliable fallback
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    const reqUrl = error.config?.url || '';
+    const isAuthEndpoint = reqUrl.includes('/auth/login') || reqUrl.includes('/auth/register');
+    if (error.response?.status === 401 && !isAuthEndpoint && currentJwtToken) {
+      setAuthToken(null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('civicops_user');
+      }
+      if (unauthorizedHandler) {
+        unauthorizedHandler();
+      }
+    }
+    return Promise.reject(new Error(extractApiErrorMessage(error)));
+  }
+);
+
 export const ApiService = {
   // Authentication
   async login(
     email: string,
-    password?: string
+    password: string
   ): Promise<{ token: string; user: User; authorizedRoles: UserRole[]; requiresRoleSelection: boolean }> {
-    try {
-      const res = await apiClient.post('/auth/login', { email, password: password || 'password123' });
-      const { token, user, authorizedRoles, requiresRoleSelection } = res.data;
-      setAuthToken(token);
-      return { token, user, authorizedRoles, requiresRoleSelection };
-    } catch (err) {
-      // Graceful local fallback for demo environments
-      const normalizedEmail = email.trim().toLowerCase();
-      const user = db.users.find((u) => u.email.toLowerCase() === normalizedEmail) || db.users[0];
-      const token = `jwt-token-${user.id}-${Date.now()}`;
-      setAuthToken(token);
-      const authorizedRoles = user.authorizedRoles && user.authorizedRoles.length > 0 ? user.authorizedRoles : [user.role];
-      const requiresRoleSelection = authorizedRoles.length > 1;
-      return { token, user, authorizedRoles, requiresRoleSelection };
-    }
+    const res = await apiClient.post('/auth/login', { email, password });
+    const { token, user, authorizedRoles, requiresRoleSelection } = res.data;
+    setAuthToken(token);
+    return {
+      token,
+      user: normalizeUser(user),
+      authorizedRoles,
+      requiresRoleSelection: Boolean(requiresRoleSelection)
+    };
   },
 
   async register(data: {
@@ -156,80 +144,97 @@ export const ApiService = {
     tower?: string;
     unitNumber?: string;
   }): Promise<{ token: string; user: User; authorizedRoles: UserRole[] }> {
-    try {
-      const res = await apiClient.post('/auth/register', data);
-      const { token, user, authorizedRoles } = res.data;
-      setAuthToken(token);
-      return { token, user, authorizedRoles };
-    } catch (err) {
-      const newUser: User = {
-        id: `usr-${Date.now()}`,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        role: 'RESIDENT',
-        authorizedRoles: ['RESIDENT'],
-        tower: data.tower || 'Tower A',
-        unitNumber: data.unitNumber || '101',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-        designation: 'Resident Owner'
-      };
-      db.users.push(newUser);
-      db.saveAll();
-      const token = `jwt-token-${newUser.id}-${Date.now()}`;
-      setAuthToken(token);
-      return { token, user: newUser, authorizedRoles: ['RESIDENT'] };
-    }
+    const res = await apiClient.post('/auth/register', data);
+    const { token, user, authorizedRoles } = res.data;
+    setAuthToken(token);
+    return {
+      token,
+      user: normalizeUser(user),
+      authorizedRoles
+    };
+  },
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const res = await apiClient.post('/auth/forgot-password', { email });
+    return res.data;
   },
 
   async getCurrentUser(): Promise<User> {
-    try {
-      const res = await apiClient.get('/auth/me');
-      return res.data;
-    } catch (err) {
-      return db.users[1]; // Suresh Patel
-    }
+    const res = await apiClient.get('/auth/me');
+    return normalizeUser(res.data);
   },
 
-  async switchRole(role: UserRole): Promise<User> {
-    try {
-      const res = await apiClient.post('/auth/switch-role', { role });
-      return res.data;
-    } catch (err) {
-      const targetUser = db.users.find((u) => u.role === role) || db.users[0];
-      targetUser.role = role;
-      return targetUser;
+  async switchRole(role: UserRole): Promise<{ token: string; user: User; authorizedRoles: UserRole[] }> {
+    const res = await apiClient.post('/auth/switch-role', { role });
+    const data = res.data;
+    if (data.token) {
+      setAuthToken(data.token);
     }
+    const normalized = normalizeUser(data.user || data);
+    return {
+      token: data.token || currentJwtToken || '',
+      user: normalized,
+      authorizedRoles: data.authorizedRoles || normalized.authorizedRoles || [role]
+    };
   },
 
   async logout(): Promise<void> {
     try {
-      await apiClient.post('/auth/logout');
-    } catch (e) {
-      // Ignore
+      if (currentJwtToken) {
+        await apiClient.post('/auth/logout');
+      }
     } finally {
       setAuthToken(null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('civicops_user');
+      }
     }
   },
 
-  // Complaints
+  // Admin & Staff Directory
+  async getUsers(): Promise<User[]> {
+    const res = await apiClient.get('/users');
+    return (res.data || []).map(normalizeUser);
+  },
+
+  async getTechnicians(): Promise<User[]> {
+    const res = await apiClient.get('/users/technicians');
+    return (res.data || []).map(normalizeUser);
+  },
+
+  async createUser(data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    authorizedRoles: UserRole[];
+    tower?: string;
+    unitNumber?: string;
+    designation?: string;
+  }): Promise<User> {
+    const res = await apiClient.post('/users', data);
+    return normalizeUser(res.data);
+  },
+
+  async updateUserRoles(userId: string, authorizedRoles: UserRole[]): Promise<User> {
+    const res = await apiClient.put(`/users/${userId}/roles`, { authorizedRoles });
+    return normalizeUser(res.data);
+  },
+
+  async updateUserStatus(userId: string, active: boolean): Promise<User> {
+    const res = await apiClient.put(`/users/${userId}/status`, { active });
+    return normalizeUser(res.data);
+  },
+
+  // Complaints & 9-step Resolution Trust Timeline
   async getComplaints(): Promise<Complaint[]> {
-    try {
-      const res = await apiClient.get('/complaints');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.complaints];
+    const res = await apiClient.get('/complaints');
+    return res.data;
   },
 
-  async getComplaintById(id: string): Promise<Complaint | undefined> {
-    try {
-      const res = await apiClient.get(`/complaints/${id}`);
-      return res.data;
-    } catch (e) {
-      return db.complaints.find((c) => c.id === id);
-    }
+  async getComplaintById(id: string): Promise<Complaint> {
+    const res = await apiClient.get(`/complaints/${id}`);
+    return res.data;
   },
 
   async createComplaint(data: {
@@ -239,91 +244,16 @@ export const ApiService = {
     severity: Complaint['severity'];
     tower: string;
     unitNumber: string;
-    residentId: string;
-    residentName: string;
-    residentPhone: string;
+    assetId?: string;
     evidenceBefore?: string[];
   }): Promise<Complaint> {
-    try {
-      const res = await apiClient.post('/complaints', data);
-      return res.data;
-    } catch (err) {
-      const ticketSeq = db.complaints.length + 90;
-      const ticketNumber = `TKT-2024-${ticketSeq.toString().padStart(3, '0')}`;
-      const now = new Date().toISOString();
-
-      const similar = db.complaints.filter(
-        (c) => c.tower === data.tower && c.category === data.category && c.status !== 'CLOSED'
-      );
-
-      let recurrenceWarning: string | undefined = undefined;
-      if (similar.length > 0) {
-        recurrenceWarning = `${similar.length} recurring issue(s) detected in ${data.tower} under ${data.category} this month.`;
-      }
-
-      const newComplaint: Complaint = {
-        id: `cmp-${Date.now()}`,
-        ticketNumber,
-        title: data.title,
-        description: data.description,
-        category: data.category,
-        severity: data.severity,
-        status: 'SUBMITTED',
-        tower: data.tower,
-        unitNumber: data.unitNumber,
-        residentId: data.residentId,
-        residentName: data.residentName,
-        residentPhone: data.residentPhone,
-        submittedAt: now,
-        updatedAt: now,
-        slaDeadline: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
-        slaBreached: false,
-        recurrenceWarning,
-        recurringCount: similar.length + 1,
-        evidenceBefore: data.evidenceBefore || [],
-        timeline: [
-          {
-            id: `tm-${Date.now()}-1`,
-            stepNumber: 1,
-            title: 'Complaint Registered',
-            actor: data.residentName,
-            actorRole: 'RESIDENT',
-            timestamp: now,
-            notes: `Ticket submitted via portal with category ${data.category}.`,
-            status: 'SUBMITTED'
-          }
-        ]
-      };
-
-      db.complaints.unshift(newComplaint);
-      db.saveAll();
-      return newComplaint;
-    }
+    const res = await apiClient.post('/complaints', data);
+    return res.data;
   },
 
   async reviewComplaint(complaintId: string, reviewerName: string, notes: string): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/review`, { reviewerName, notes });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
-      const now = new Date().toISOString();
-      complaint.status = 'REVIEWED';
-      complaint.updatedAt = now;
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 2,
-        title: 'Management Triage & Priority Set',
-        actor: reviewerName,
-        actorRole: 'MANAGEMENT',
-        timestamp: now,
-        notes: notes || 'Reviewed by estate management. Assigned priority SLA.',
-        status: 'REVIEWED'
-      });
-      db.saveAll();
-      return complaint;
-    }
+    const res = await apiClient.post(`/complaints/${complaintId}/review`, { reviewerName, notes });
+    return res.data;
   },
 
   async assignComplaint(
@@ -332,61 +262,8 @@ export const ApiService = {
     assignerName: string,
     notes?: string
   ): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/assign`, { technicianId, assignerName, notes });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
-
-      const technician = db.users.find((u) => u.id === technicianId) || db.users[2];
-      const now = new Date().toISOString();
-
-      complaint.status = 'ASSIGNED';
-      complaint.assignedTechnicianId = technician.id;
-      complaint.assignedTechnicianName = technician.name;
-      complaint.updatedAt = now;
-
-      const woSeq = db.workOrders.length + 120;
-      const newWo: WorkOrder = {
-        id: `wo-${Date.now()}`,
-        woNumber: `WO-2024-${woSeq}`,
-        title: `${complaint.category}: ${complaint.title}`,
-        complaintId: complaint.id,
-        type: complaint.severity === 'CRITICAL' ? 'EMERGENCY' : 'CORRECTIVE',
-        status: 'IN_PROGRESS',
-        priority: complaint.severity === 'CRITICAL' ? 'URGENT' : complaint.severity === 'HIGH' ? 'HIGH' : 'MEDIUM',
-        tower: complaint.tower,
-        location: `${complaint.tower}, Flat ${complaint.unitNumber}`,
-        technicianId: technician.id,
-        technicianName: technician.name,
-        createdAt: now,
-        dueDate: complaint.slaDeadline,
-        estimatedHours: 2.5,
-        sparesAllocated: [],
-        checklists: [
-          { item: 'Perform preliminary on-site assessment', completed: false },
-          { item: 'Verify isolation and resident presence', completed: false },
-          { item: 'Execute root cause troubleshooting', completed: false },
-          { item: 'Capture high-resolution evidence photo', completed: false }
-        ]
-      };
-      db.workOrders.unshift(newWo);
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 3,
-        title: `Assigned to ${technician.name}`,
-        actor: assignerName,
-        actorRole: 'MANAGEMENT',
-        timestamp: now,
-        notes: notes || `Dispatched to MEP maintenance lead. Generated ${newWo.woNumber}.`,
-        status: 'ASSIGNED'
-      });
-
-      db.saveAll();
-      return complaint;
-    }
+    const res = await apiClient.post(`/complaints/${complaintId}/assign`, { technicianId, assignerName, notes });
+    return res.data;
   },
 
   async recordInspection(
@@ -395,38 +272,12 @@ export const ApiService = {
     inspectionNotes: string,
     evidenceUrls: string[]
   ): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/inspection`, {
-        technicianName,
-        inspectionNotes,
-        evidenceUrl: evidenceUrls[0]
-      });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
-
-      const now = new Date().toISOString();
-      complaint.status = 'INSPECTING';
-      complaint.inspectionNotes = inspectionNotes;
-      complaint.evidenceBefore = [...(complaint.evidenceBefore || []), ...evidenceUrls];
-      complaint.updatedAt = now;
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 4,
-        title: 'Physical Inspection & Diagnosis',
-        actor: technicianName,
-        actorRole: 'MAINTENANCE',
-        timestamp: now,
-        notes: inspectionNotes,
-        status: 'INSPECTING',
-        evidenceUrl: evidenceUrls[0]
-      });
-
-      db.saveAll();
-      return complaint;
-    }
+    const res = await apiClient.post(`/complaints/${complaintId}/inspection`, {
+      technicianName,
+      inspectionNotes,
+      evidenceUrl: evidenceUrls[0] || ''
+    });
+    return res.data;
   },
 
   async submitResolutionProposal(
@@ -438,73 +289,26 @@ export const ApiService = {
       sparesUsed: { partId: string; partName: string; quantity: number }[];
     }
   ): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/propose-resolution`, {
-        technicianName,
-        resolutionDescription: data.proposedResolution,
-        evidenceUrl: data.evidenceAfterUrls[0]
-      });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
-
-      const now = new Date().toISOString();
-      complaint.status = 'PROPOSED';
-      complaint.proposedResolution = data.proposedResolution;
-      complaint.evidenceAfter = data.evidenceAfterUrls;
-      complaint.proposedSpares = data.sparesUsed;
-      complaint.updatedAt = now;
-
-      const wo = db.workOrders.find((w) => w.complaintId === complaintId);
-      if (wo) {
-        wo.status = 'PROPOSAL_SUBMITTED';
-        wo.technicianNotes = data.proposedResolution;
-      }
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 6,
-        title: 'Resolution Proposal Submitted',
-        actor: technicianName,
-        actorRole: 'MAINTENANCE',
-        timestamp: now,
-        notes: `Repair finalized. Proposal: "${data.proposedResolution}". Awaiting resident sign-off.`,
-        status: 'PROPOSED',
-        evidenceUrl: data.evidenceAfterUrls[0]
-      });
-
-      db.saveAll();
-      return complaint;
-    }
+    const res = await apiClient.post(`/complaints/${complaintId}/propose-resolution`, {
+      technicianName,
+      resolutionDescription: data.proposedResolution,
+      evidenceUrl: data.evidenceAfterUrls[0] || '',
+      proposedSpares: data.sparesUsed
+    });
+    return res.data;
   },
 
   async approveResolutionProposal(complaintId: string, managerName: string, notes?: string): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/approve-proposal`, { reviewerName: managerName, notes });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
+    const res = await apiClient.post(`/complaints/${complaintId}/approve-proposal`, {
+      reviewerName: managerName,
+      notes
+    });
+    return res.data;
+  },
 
-      const now = new Date().toISOString();
-      complaint.status = 'MANAGEMENT_APPROVED';
-      complaint.updatedAt = now;
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 7,
-        title: 'Management Approved Resolution',
-        actor: managerName,
-        actorRole: 'MANAGEMENT',
-        timestamp: now,
-        notes: notes || 'Work verified against safety and SLA standards. Sent to resident for final verification.',
-        status: 'MANAGEMENT_APPROVED'
-      });
-
-      db.saveAll();
-      return complaint;
-    }
+  async rejectResolutionProposal(complaintId: string, reason: string): Promise<Complaint> {
+    const res = await apiClient.post(`/complaints/${complaintId}/reject-proposal`, { reason });
+    return res.data;
   },
 
   async residentConfirmResolution(
@@ -514,220 +318,113 @@ export const ApiService = {
     feedback: string,
     signatureData?: string
   ): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/confirm`, {
-        residentName,
-        rating,
-        feedback,
-        signature: signatureData
-      });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
-
-      const now = new Date().toISOString();
-      complaint.status = 'RESIDENT_CONFIRMED';
-      complaint.residentRating = rating;
-      complaint.residentFeedback = feedback;
-      complaint.updatedAt = now;
-
-      const wo = db.workOrders.find((w) => w.complaintId === complaintId);
-      if (wo) {
-        wo.status = 'COMPLETED';
-      }
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 8,
-        title: 'Resident Verified & Signed Off',
-        actor: residentName,
-        actorRole: 'RESIDENT',
-        timestamp: now,
-        notes: `Resident accepted resolution with ${rating}/5 stars. Feedback: "${feedback || 'Satisfied'}"`,
-        status: 'RESIDENT_CONFIRMED',
-        signature: signatureData || 'Digital Signature Verified'
-      });
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}-closed`,
-        stepNumber: 9,
-        title: 'Ticket Closed & Archive Seeded',
-        actor: 'CivicOps System Engine',
-        actorRole: 'ADMIN',
-        timestamp: now,
-        notes: 'Resolution verified. Asset MTTR updated in Community Memory Graph.',
-        status: 'CLOSED'
-      });
-
-      db.saveAll();
-      return complaint;
-    }
+    const res = await apiClient.post(`/complaints/${complaintId}/confirm`, {
+      residentName,
+      rating,
+      feedback,
+      signature: signatureData
+    });
+    return res.data;
   },
 
-  async residentDisputeResolution(complaintId: string, residentName: string, disputeReason: string): Promise<Complaint> {
-    try {
-      const res = await apiClient.post(`/complaints/${complaintId}/dispute`, { residentName, disputeReason });
-      return res.data;
-    } catch (e) {
-      const complaint = db.complaints.find((c) => c.id === complaintId);
-      if (!complaint) throw new Error('Complaint not found');
-
-      const now = new Date().toISOString();
-      complaint.status = 'DISPUTED';
-      complaint.disputeReason = disputeReason;
-      complaint.updatedAt = now;
-
-      const wo = db.workOrders.find((w) => w.complaintId === complaintId);
-      if (wo) {
-        wo.status = 'IN_PROGRESS';
-      }
-
-      complaint.timeline.push({
-        id: `tm-${Date.now()}`,
-        stepNumber: 8,
-        title: 'Resolution Disputed by Resident',
-        actor: residentName,
-        actorRole: 'RESIDENT',
-        timestamp: now,
-        notes: `Dispute raised: "${disputeReason}". Re-opened for management escalation.`,
-        status: 'DISPUTED'
-      });
-
-      db.saveAll();
-      return complaint;
-    }
+  async residentDisputeResolution(
+    complaintId: string,
+    residentName: string,
+    disputeReason: string
+  ): Promise<Complaint> {
+    const res = await apiClient.post(`/complaints/${complaintId}/dispute`, { residentName, disputeReason });
+    return res.data;
   },
 
   // Work Orders & Maintenance
   async getWorkOrders(): Promise<WorkOrder[]> {
-    try {
-      const res = await apiClient.get('/work-orders');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.workOrders];
+    const res = await apiClient.get('/work-orders');
+    return res.data;
   },
 
-  async updateWorkOrderStatus(id: string, status: WorkOrder['status']): Promise<WorkOrder> {
-    try {
-      const res = await apiClient.put(`/work-orders/${id}/status`, { status });
-      return res.data;
-    } catch (e) {
-      const wo = db.workOrders.find((w) => w.id === id);
-      if (!wo) throw new Error('Work order not found');
-      wo.status = status;
-      db.saveAll();
-      return wo;
-    }
+  async updateWorkOrderStatus(
+    id: string,
+    status: WorkOrder['status'],
+    technicianNotes?: string,
+    actualHours?: number
+  ): Promise<WorkOrder> {
+    const res = await apiClient.put(`/work-orders/${id}/status`, { status, technicianNotes, actualHours });
+    return res.data;
   },
 
-  async toggleWorkOrderChecklist(id: string, index: number): Promise<WorkOrder> {
-    const wo = db.workOrders.find((w) => w.id === id);
-    if (!wo) throw new Error('Work order not found');
-    if (wo.checklists[index]) {
-      wo.checklists[index].completed = !wo.checklists[index].completed;
-    }
-    db.saveAll();
-    return wo;
+  async updateWorkOrderChecklist(
+    id: string,
+    checklists: { item: string; completed: boolean }[],
+    technicianNotes?: string
+  ): Promise<WorkOrder> {
+    const res = await apiClient.put(`/work-orders/${id}/checklist`, { checklists, technicianNotes });
+    return res.data;
   },
 
-  // Assets
+  // Assets & Inventory Traceability
   async getAssets(): Promise<Asset[]> {
-    try {
-      const res = await apiClient.get('/assets');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.assets];
+    const res = await apiClient.get('/assets');
+    return res.data;
   },
 
-  // Spares & Inventory
+  async createAsset(data: {
+    name: string;
+    category: string;
+    tower: string;
+    location: string;
+    assetCode?: string;
+    vendorName?: string;
+    vendorContact?: string;
+    healthScore?: number;
+  }): Promise<Asset> {
+    const res = await apiClient.post('/assets', data);
+    return res.data;
+  },
+
   async getSpares(): Promise<SparePart[]> {
-    try {
-      const res = await apiClient.get('/spares');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.spares];
+    const res = await apiClient.get('/spares');
+    return res.data;
+  },
+
+  async getInventoryMovements(partId?: string): Promise<InventoryMovement[]> {
+    const res = await apiClient.get('/inventory/movements', { params: partId ? { partId } : undefined });
+    return res.data;
   },
 
   async reorderSpare(partId: string, quantity: number): Promise<SparePart> {
-    try {
-      const res = await apiClient.post(`/spares/${partId}/reorder`, { quantity });
-      return res.data;
-    } catch (e) {
-      const part = db.spares.find((p) => p.id === partId);
-      if (!part) throw new Error('Part not found');
-      part.currentStock += quantity;
-      db.saveAll();
-      return part;
-    }
+    const res = await apiClient.post(`/spares/${partId}/reorder`, { quantity });
+    return res.data;
   },
 
   async getRequisitions(): Promise<SpareRequisition[]> {
-    try {
-      const res = await apiClient.get('/requisitions');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.requisitions];
+    const res = await apiClient.get('/requisitions');
+    return res.data;
   },
 
-  async createRequisition(data: Omit<SpareRequisition, 'id' | 'reqNumber' | 'requestedAt' | 'status'>): Promise<SpareRequisition> {
-    try {
-      const res = await apiClient.post('/requisitions', data);
-      return res.data;
-    } catch (e) {
-      const reqSeq = db.requisitions.length + 95;
-      const newReq: SpareRequisition = {
-        id: `req-${Date.now()}`,
-        reqNumber: `REQ-2024-${reqSeq.toString().padStart(3, '0')}`,
-        requestedAt: new Date().toISOString(),
-        status: 'PENDING_APPROVAL',
-        ...data
-      };
-      db.requisitions.unshift(newReq);
-      db.saveAll();
-      return newReq;
-    }
+  async createRequisition(data: {
+    workOrderId?: string;
+    partId: string;
+    quantity: number;
+    urgency: SpareRequisition['urgency'];
+  }): Promise<SpareRequisition> {
+    const res = await apiClient.post('/requisitions', data);
+    return res.data;
   },
 
-  async updateRequisitionStatus(id: string, status: 'APPROVED' | 'REJECTED', managerNotes?: string): Promise<SpareRequisition> {
-    try {
-      const endpoint = status === 'APPROVED' ? `/requisitions/${id}/approve` : `/requisitions/${id}/reject`;
-      const res = await apiClient.post(endpoint, { notes: managerNotes });
-      return res.data;
-    } catch (e) {
-      const req = db.requisitions.find((r) => r.id === id);
-      if (!req) throw new Error('Requisition not found');
-      req.status = status;
-      req.managerNotes = managerNotes;
-
-      if (status === 'APPROVED') {
-        const part = db.spares.find((p) => p.id === req.partId);
-        if (part && part.currentStock >= req.quantity) {
-          part.currentStock -= req.quantity;
-        }
-      }
-      db.saveAll();
-      return req;
-    }
+  async updateRequisitionStatus(
+    id: string,
+    status: 'APPROVED' | 'REJECTED',
+    managerNotes?: string
+  ): Promise<SpareRequisition> {
+    const endpoint = status === 'APPROVED' ? `/requisitions/${id}/approve` : `/requisitions/${id}/reject`;
+    const res = await apiClient.post(endpoint, { notes: managerNotes });
+    return res.data;
   },
 
-  // Visitors & Gate Security
+  // Visitors & Gate Lifecycle
   async getVisitorPasses(): Promise<VisitorPass[]> {
-    try {
-      const res = await apiClient.get('/visitors');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.visitorPasses];
+    const res = await apiClient.get('/visitors');
+    return res.data;
   },
 
   async createVisitorPass(data: {
@@ -735,73 +432,28 @@ export const ApiService = {
     visitorPhone: string;
     visitorType: VisitorPass['visitorType'];
     vehicleNumber?: string;
-    tower: string;
-    unitNumber: string;
-    residentName: string;
+    tower?: string;
+    unitNumber?: string;
+    residentName?: string;
     validHours?: number;
   }): Promise<VisitorPass> {
-    try {
-      const res = await apiClient.post('/visitors/pre-approve', data);
-      return res.data;
-    } catch (e) {
-      const passSeq = Math.floor(1000 + Math.random() * 9000);
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
-      const now = new Date();
-      const validUntil = new Date(now.getTime() + (data.validHours || 8) * 3600 * 1000).toISOString();
-
-      const newPass: VisitorPass = {
-        id: `vp-${Date.now()}`,
-        passCode: `GV-${passSeq}`,
-        sixDigitPin: pin,
-        visitorName: data.visitorName,
-        visitorPhone: data.visitorPhone,
-        visitorType: data.visitorType,
-        vehicleNumber: data.vehicleNumber,
-        tower: data.tower,
-        unitNumber: data.unitNumber,
-        residentName: data.residentName,
-        entryGate: 'Gate 1 (Main Entrance)',
-        validFrom: now.toISOString(),
-        validUntil,
-        status: 'PRE_APPROVED'
-      };
-      db.visitorPasses.unshift(newPass);
-      db.saveAll();
-      return newPass;
-    }
+    const res = await apiClient.post('/visitors/pre-approve', data);
+    return res.data;
   },
 
   async verifyAndCheckInVisitor(codeOrPin: string): Promise<VisitorPass> {
-    try {
-      const res = await apiClient.post('/visitors/verify', { codeOrPin });
-      return res.data;
-    } catch (e) {
-      const pass = db.visitorPasses.find(
-        (p) =>
-          (p.sixDigitPin === codeOrPin || p.passCode.toLowerCase() === codeOrPin.toLowerCase()) &&
-          p.status !== 'REVOKED'
-      );
-      if (!pass) throw new Error('Pass not found or invalid PIN');
+    const res = await apiClient.post('/visitors/verify', { codeOrPin });
+    return res.data;
+  },
 
-      pass.status = 'ENTERED';
-      pass.checkInTime = new Date().toISOString();
-      db.saveAll();
-      return pass;
-    }
+  async checkOutVisitor(passId: string): Promise<VisitorPass> {
+    const res = await apiClient.post(`/visitors/${passId}/check-out`);
+    return res.data;
   },
 
   async revokeVisitorPass(passId: string, reason: string): Promise<VisitorPass> {
-    try {
-      const res = await apiClient.post(`/visitors/${passId}/revoke`, { reason });
-      return res.data;
-    } catch (e) {
-      const pass = db.visitorPasses.find((p) => p.id === passId);
-      if (!pass) throw new Error('Pass not found');
-      pass.status = 'REVOKED';
-      pass.revocationReason = reason;
-      db.saveAll();
-      return pass;
-    }
+    const res = await apiClient.post(`/visitors/${passId}/revoke`, { reason });
+    return res.data;
   },
 
   async checkInWalkInVisitor(data: {
@@ -812,71 +464,39 @@ export const ApiService = {
     unitNumber: string;
     vehicleNumber?: string;
   }): Promise<VisitorPass> {
-    try {
-      const res = await apiClient.post('/visitors/walk-in', data);
-      return res.data;
-    } catch (e) {
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
-      const passSeq = Math.floor(1000 + Math.random() * 9000);
-      const now = new Date().toISOString();
-
-      const pass: VisitorPass = {
-        id: `vp-${Date.now()}`,
-        passCode: `GV-${passSeq}`,
-        sixDigitPin: pin,
-        visitorName: `${data.name} (${data.purpose})`,
-        visitorPhone: data.phone,
-        visitorType: 'SERVICE',
-        vehicleNumber: data.vehicleNumber,
-        tower: data.tower,
-        unitNumber: data.unitNumber,
-        residentName: 'On-Duty Security Verified',
-        entryGate: 'Gate 1 (Main Entrance)',
-        validFrom: now,
-        validUntil: new Date(Date.now() + 4 * 3600 * 1000).toISOString(),
-        status: 'ENTERED',
-        checkInTime: now
-      };
-      db.visitorPasses.unshift(pass);
-      db.saveAll();
-      return pass;
-    }
+    const res = await apiClient.post('/visitors/walk-in', data);
+    return res.data;
   },
 
   // Parcels & Deliveries
   async getParcels(): Promise<Parcel[]> {
-    try {
-      const res = await apiClient.get('/parcels');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.parcels];
+    const res = await apiClient.get('/parcels');
+    return res.data;
   },
 
-  async markParcelCollected(parcelId: string): Promise<Parcel> {
-    try {
-      const res = await apiClient.post(`/parcels/${parcelId}/collect`);
-      return res.data;
-    } catch (e) {
-      const parcel = db.parcels.find((p) => p.id === parcelId);
-      if (!parcel) throw new Error('Parcel not found');
-      parcel.status = 'COLLECTED';
-      parcel.pickedUpAt = new Date().toISOString();
-      db.saveAll();
-      return parcel;
-    }
+  async createParcel(data: {
+    carrier: string;
+    recipientName: string;
+    tower: string;
+    unitNumber: string;
+    deliveryAgentName: string;
+    deliveryAgentPhone?: string;
+    lockerNumber?: string;
+    trackingNumber?: string;
+  }): Promise<Parcel> {
+    const res = await apiClient.post('/parcels', data);
+    return res.data;
+  },
+
+  async markParcelCollected(parcelId: string, otp?: string): Promise<Parcel> {
+    const res = await apiClient.post(`/parcels/${parcelId}/collect`, otp ? { otp } : {});
+    return res.data;
   },
 
   // Emergency SOS & Incidents
   async getIncidents(): Promise<IncidentAlert[]> {
-    try {
-      const res = await apiClient.get('/incidents');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.incidents];
+    const res = await apiClient.get('/incidents');
+    return res.data;
   },
 
   async triggerEmergencySos(data: {
@@ -884,74 +504,205 @@ export const ApiService = {
     category: IncidentAlert['category'];
     tower: string;
     location: string;
-    reportedBy: string;
+    severity?: IncidentAlert['severity'];
   }): Promise<IncidentAlert> {
-    try {
-      const res = await apiClient.post('/incidents/sos', data);
-      return res.data;
-    } catch (e) {
-      const incSeq = db.incidents.length + 5;
-      const newInc: IncidentAlert = {
-        id: `inc-${Date.now()}`,
-        alertCode: `SOS-2024-${incSeq.toString().padStart(3, '0')}`,
-        title: data.title,
-        severity: 'SOS_EMERGENCY',
-        category: data.category,
-        tower: data.tower,
-        location: data.location,
-        reportedBy: data.reportedBy,
-        reportedAt: new Date().toISOString(),
-        status: 'ACTIVE',
-        broadcastSent: true,
-        smsSentCount: 480,
-        actionsTaken: [
-          'Automatic siren activated at Main Guardhouse',
-          'Emergency response team notified via high-priority push broadcast',
-          'Lift lobbies & public address audio warning broadcasted'
-        ]
-      };
-      db.incidents.unshift(newInc);
-      db.saveAll();
-      return newInc;
-    }
+    const res = await apiClient.post('/incidents/sos', data);
+    return res.data;
   },
 
-  // Units & Residents
+  async resolveIncident(incidentId: string, notes: string): Promise<IncidentAlert> {
+    const res = await apiClient.post(`/incidents/${incidentId}/resolve`, { notes });
+    return res.data;
+  },
+
+  // Units & Dues
   async getUnits(): Promise<Unit[]> {
-    try {
-      const res = await apiClient.get('/units');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.units];
+    const res = await apiClient.get('/units');
+    return res.data;
   },
 
+  async createUnit(data: {
+    unitNumber: string;
+    tower: string;
+    floor: number;
+    type: string;
+    ownerName: string;
+    ownerPhone: string;
+    isTenantOccupied?: boolean;
+    tenantName?: string;
+    tenantPhone?: string;
+    duesAmount?: number;
+    registeredVehicles?: string[];
+  }): Promise<Unit> {
+    const res = await apiClient.post('/units', data);
+    return res.data;
+  },
+
+  async payUnitDues(unitId: string, paymentMethod = 'UPI / NetBanking'): Promise<{ unit: Unit; payment: DuesPayment }> {
+    const res = await apiClient.post(`/units/${unitId}/pay-dues`, { paymentMethod });
+    return res.data;
+  },
+
+  async getDuesPayments(): Promise<DuesPayment[]> {
+    const res = await apiClient.get('/units/payments');
+    return res.data;
+  },
+
+  // Preventive Maintenance Intelligence
   async getPreventiveSchedules(): Promise<PreventiveSchedule[]> {
-    try {
-      const res = await apiClient.get('/preventive-schedules');
-      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
-    } catch (e) {
-      // Fallback
-    }
-    return [...db.preventiveSchedules];
+    const res = await apiClient.get('/preventive-schedules');
+    return res.data;
   },
 
-  async getMemoryGraph(): Promise<any> {
-    try {
-      const res = await apiClient.get('/analytics/memory-graph');
-      return res.data;
-    } catch (e) {
-      return null;
-    }
+  async getPreventiveLogs(): Promise<PreventiveCompletionLog[]> {
+    const res = await apiClient.get('/preventive-schedules/logs');
+    return res.data;
   },
 
-  async getReliabilityRadar(): Promise<any> {
-    try {
-      const res = await apiClient.get('/analytics/reliability-radar');
-      return res.data;
-    } catch (e) {
-      return null;
+  async createPreventiveSchedule(data: {
+    title: string;
+    assetId?: string;
+    assetName?: string;
+    tower: string;
+    frequency: PreventiveSchedule['frequency'];
+    nextDueDate?: string;
+    assignedTeam: string;
+  }): Promise<PreventiveSchedule> {
+    const res = await apiClient.post('/preventive-schedules', data);
+    return res.data;
+  },
+
+  async syncOverdueSchedules(): Promise<PreventiveSchedule[]> {
+    const res = await apiClient.post('/preventive-schedules/sync-overdue');
+    return res.data;
+  },
+
+  async generatePmWorkOrder(scheduleId: string, technicianId?: string): Promise<WorkOrder> {
+    const res = await apiClient.post(`/preventive-schedules/${scheduleId}/generate-work-order`, { technicianId });
+    return res.data;
+  },
+
+  async completePreventiveCycle(
+    scheduleId: string,
+    notes: string,
+    workOrderId?: string
+  ): Promise<{ schedule: PreventiveSchedule; completionLog: PreventiveCompletionLog }> {
+    const res = await apiClient.post(`/preventive-schedules/${scheduleId}/complete`, { notes, workOrderId });
+    return res.data;
+  },
+
+  // Intelligence Analytics
+  async getMemoryGraph(): Promise<MemoryGraphData> {
+    const res = await apiClient.get('/analytics/memory-graph');
+    return res.data;
+  },
+
+  async getReliabilityRadar(): Promise<ReliabilityRadarData> {
+    const res = await apiClient.get('/analytics/reliability-radar');
+    return res.data;
+  },
+
+  async getRecurrenceQueue(windowDays = 30): Promise<RecurrenceCluster[]> {
+    const res = await apiClient.get('/analytics/recurrence-queue', { params: { windowDays } });
+    return res.data;
+  },
+
+  async investigateRecurrence(
+    clusterId: string,
+    payload: {
+      status: string;
+      rootCause?: string;
+      suggestedFix?: string;
+      capexEstimate?: string;
+      investigationNotes?: string;
+      followUpAction?: string;
+      createPreventiveSchedule?: boolean;
+      createWorkOrder?: boolean;
     }
+  ): Promise<any> {
+    const res = await apiClient.post(`/analytics/recurrence-queue/${clusterId}/investigate`, payload);
+    return res.data;
+  },
+
+  // Modules 14-17: Community Hub, Documents, Notifications, Audit Logs
+  async getAnnouncements(): Promise<Announcement[]> {
+    const res = await apiClient.get('/announcements');
+    return res.data;
+  },
+
+  async createAnnouncement(data: {
+    title: string;
+    content: string;
+    category: string;
+    tower: string;
+    pinned?: boolean;
+  }): Promise<Announcement> {
+    const res = await apiClient.post('/announcements', data);
+    return res.data;
+  },
+
+  async deleteAnnouncement(id: string): Promise<void> {
+    await apiClient.delete(`/announcements/${id}`);
+  },
+
+  async getEvents(): Promise<CommunityEvent[]> {
+    const res = await apiClient.get('/events');
+    return res.data;
+  },
+
+  async createEvent(data: {
+    title: string;
+    description: string;
+    location: string;
+    tower: string;
+    eventDate: string;
+  }): Promise<CommunityEvent> {
+    const res = await apiClient.post('/events', data);
+    return res.data;
+  },
+
+  async rsvpEvent(id: string): Promise<CommunityEvent> {
+    const res = await apiClient.post(`/events/${id}/rsvp`);
+    return res.data;
+  },
+
+  async getDocuments(): Promise<CommunityDocument[]> {
+    const res = await apiClient.get('/documents');
+    return res.data;
+  },
+
+  async createDocument(data: {
+    title: string;
+    category: string;
+    description?: string;
+    fileUrl: string;
+    fileSize?: string;
+    visibilityRole?: string;
+  }): Promise<CommunityDocument> {
+    const res = await apiClient.post('/documents', data);
+    return res.data;
+  },
+
+  async deleteDocument(id: string): Promise<void> {
+    await apiClient.delete(`/documents/${id}`);
+  },
+
+  async getNotifications(): Promise<AppNotification[]> {
+    const res = await apiClient.get('/notifications');
+    return res.data;
+  },
+
+  async markNotificationRead(id: string): Promise<AppNotification> {
+    const res = await apiClient.post(`/notifications/${id}/read`);
+    return res.data;
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    await apiClient.post('/notifications/read-all');
+  },
+
+  async getAuditLogs(): Promise<AuditLogEntry[]> {
+    const res = await apiClient.get('/audit-logs');
+    return res.data;
   }
 };

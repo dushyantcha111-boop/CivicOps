@@ -19,22 +19,22 @@ export const FastCheckInModal: React.FC = () => {
     setIsSubmitting(true);
     try {
       const pass = await ApiService.checkInWalkInVisitor({
-        name,
-        phone,
-        purpose,
+        name: name.trim(),
+        phone: phone.trim(),
+        purpose: purpose.trim(),
         tower,
-        unitNumber,
-        vehicleNumber: vehicleNumber || undefined
+        unitNumber: unitNumber.trim(),
+        vehicleNumber: vehicleNumber.trim() || undefined
       });
 
       await refreshData();
-      showToast(`Visitor ${pass.visitorName} checked in. Boom Barrier Opened!`);
+      showToast(`Visitor ${pass.visitorName} checked in and gate pass ${pass.passCode} logged.`);
       setIsFastCheckInOpen(false);
       setName('');
       setPhone('');
       setVehicleNumber('');
-    } catch (err) {
-      showToast('Check-in failed', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Walk-in check-in failed', 'error');
     } finally {
       setIsSubmitting(false);
     }

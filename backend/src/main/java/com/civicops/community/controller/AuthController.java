@@ -1,11 +1,16 @@
 package com.civicops.community.controller;
 
 import com.civicops.community.model.*;
+import com.civicops.community.repository.RevokedTokenRepository;
 import com.civicops.community.repository.UserRepository;
+import com.civicops.community.security.JwtAuthenticationFilter;
 import com.civicops.community.security.JwtTokenProvider;
+import com.civicops.community.service.AuditService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,12 +28,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final RevokedTokenRepository revokedTokenRepository;
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
@@ -40,9 +46,21 @@ public class AuthController {
                     .body(Map.of("error", "Invalid email or password. Please verify your credentials."));
         }
 
-        String token = tokenProvider.generateTokenFromEmail(user.getEmail());
+        if (Boolean.FALSE.equals(user.getActive())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "This account has been deactivated by an administrator."));
+        }
+
         List<Role> authorizedRoles = user.getAuthorizedRoleList();
+        if (!authorizedRoles.contains(user.getRole()) && !authorizedRoles.isEmpty()) {
+            user.setRole(authorizedRoles.get(0));
+            userRepository.save(user);
+        }
+
+        String token = tokenProvider.generateTokenForUser(user.getEmail(), user.getRole().name());
         boolean requiresRoleSelection = authorizedRoles.size() > 1;
+
+        auditService.logAction(user, "LOGIN", "USER", user.getId(), "Signed in with active role " + user.getRole());
 
         LoginResponseDto response = LoginResponseDto.builder()
                 .token(token)
@@ -63,12 +81,7 @@ public class AuthController {
                     .body(Map.of("error", "An account with this email address already exists."));
         }
 
-        if (request.getPassword().length() < 6) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Password must be at least 6 characters long."));
-        }
-
-        // MANDATORY SECURITY RULE: Public registration strictly creates RESIDENT accounts only
+        // Public registration strictly creates RESIDENT accounts only
         Role assignedRole = Role.RESIDENT;
 
         User newUser = User.builder()
@@ -79,15 +92,18 @@ public class AuthController {
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(assignedRole)
                 .authorizedRoles(assignedRole.name())
-                .tower(request.getTower() != null ? request.getTower().trim() : "Tower A")
-                .unitNumber(request.getUnitNumber() != null ? request.getUnitNumber().trim() : "101")
+                .tower(request.getTower() != null && !request.getTower().isBlank() ? request.getTower().trim() : "Tower A")
+                .unitNumber(request.getUnitNumber() != null && !request.getUnitNumber().isBlank() ? request.getUnitNumber().trim() : "101")
                 .avatarUrl("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250")
+                .active(true)
                 .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         userRepository.save(newUser);
+        auditService.logAction(newUser, "REGISTER", "USER", newUser.getId(), "Registered new resident account");
 
-        String token = tokenProvider.generateTokenFromEmail(newUser.getEmail());
+        String token = tokenProvider.generateTokenForUser(newUser.getEmail(), assignedRole.name());
         List<Role> authorizedRoles = newUser.getAuthorizedRoleList();
 
         LoginResponseDto response = LoginResponseDto.builder()
@@ -101,17 +117,24 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // Respond uniformly without leaking account existence
+        userRepository.findByEmail(request.getEmail().trim().toLowerCase()).ifPresent(user ->
+                auditService.logAction(user, "PASSWORD_RESET_REQUESTED", "USER", user.getId(),
+                        "Password reset request logged for estate administrator review.")
+        );
+        return ResponseEntity.ok(Map.of(
+                "message", "If an active account matches that email, estate administration has queued a password reset verification."
+        ));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-        String email = null;
-        if (authentication != null && authentication.getName() != null) {
-            email = authentication.getName();
-        } else {
-            // Check SecurityContextHolder
+        String email = authentication != null ? authentication.getName() : null;
+        if (email == null) {
             Authentication ctxAuth = SecurityContextHolder.getContext().getAuthentication();
-            if (ctxAuth != null && ctxAuth.getName() != null) {
-                email = ctxAuth.getName();
-            }
+            if (ctxAuth != null) email = ctxAuth.getName();
         }
 
         if (email == null || "anonymousUser".equalsIgnoreCase(email)) {
@@ -120,9 +143,9 @@ public class AuthController {
         }
 
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "User profile not found."));
+        if (user == null || Boolean.FALSE.equals(user.getActive())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User account unavailable."));
         }
 
         return ResponseEntity.ok(UserResponseDto.fromEntity(user));
@@ -141,8 +164,8 @@ public class AuthController {
         }
 
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+        if (user == null || Boolean.FALSE.equals(user.getActive())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found or inactive"));
         }
 
         Role requestedRole;
@@ -152,7 +175,6 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid role: " + roleStr));
         }
 
-        // BACKEND SECURITY: Validate that the requested role is within the user's actual database authorized roles!
         List<Role> authorizedRoles = user.getAuthorizedRoleList();
         if (!authorizedRoles.contains(requestedRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
@@ -161,13 +183,38 @@ public class AuthController {
         }
 
         user.setRole(requestedRole);
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
-        return ResponseEntity.ok(UserResponseDto.fromEntity(user));
+        String freshToken = tokenProvider.generateTokenForUser(user.getEmail(), requestedRole.name());
+        auditService.logAction(user, "SWITCH_ROLE", "USER", user.getId(), "Switched active role to " + requestedRole);
+
+        return ResponseEntity.ok(LoginResponseDto.builder()
+                .token(freshToken)
+                .refreshToken("refresh-" + freshToken)
+                .user(UserResponseDto.fromEntity(user))
+                .authorizedRoles(authorizedRoles)
+                .requiresRoleSelection(authorizedRoles.size() > 1)
+                .build());
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String jwt = JwtAuthenticationFilter.extractBearerToken(request);
+        if (jwt != null && tokenProvider.validateToken(jwt)) {
+            String jti = tokenProvider.getTokenId(jwt);
+            if (jti != null && !revokedTokenRepository.existsById(jti)) {
+                revokedTokenRepository.save(RevokedToken.builder()
+                        .tokenId(jti)
+                        .expiresAt(tokenProvider.getExpiration(jwt))
+                        .revokedAt(LocalDateTime.now())
+                        .build());
+            }
+            String email = tokenProvider.getEmailFromJWT(jwt);
+            userRepository.findByEmail(email).ifPresent(user ->
+                    auditService.logAction(user, "LOGOUT", "USER", user.getId(), "Token revoked and session logged out")
+            );
+        }
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok(Map.of("message", "Session invalidated and logged out successfully."));
     }
@@ -195,9 +242,17 @@ public class AuthController {
         private String phone;
 
         @NotBlank(message = "Password is required")
+        @Size(min = 6, message = "Password must be at least 6 characters long.")
         private String password;
 
         private String tower;
         private String unitNumber;
+    }
+
+    @Data
+    public static class ForgotPasswordRequest {
+        @NotBlank(message = "Email is required")
+        @Email(message = "Valid email is required")
+        private String email;
     }
 }

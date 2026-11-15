@@ -1,5 +1,6 @@
 package com.civicops.community.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class ComplaintTimeline {
     @Id
     private String id;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "complaint_id", nullable = false)
     private Complaint complaint;
@@ -43,5 +45,6 @@ public class ComplaintTimeline {
 
     private String signature;
 
+    @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 }

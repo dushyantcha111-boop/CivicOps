@@ -12,6 +12,7 @@ export const Header: React.FC = () => {
     setIsSosModalOpen,
     setIsRoleSwitcherOpen,
     incidents,
+    unreadNotificationsCount,
     setActiveTab,
     logout
   } = useApp();
@@ -37,21 +38,19 @@ export const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 right-0 lg:left-64 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-4 lg:px-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
       {/* Left: Society info & Tower Switcher */}
-      <div className="flex items-center gap-3">
-        {/* Mobile menu logo for small screens */}
-        <div className="lg:hidden flex items-center gap-2">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="lg:hidden flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
             <span className="material-symbols-outlined text-[18px]">apartment</span>
           </div>
           <span className="font-headline font-bold text-slate-900 text-sm">CivicOps</span>
         </div>
 
-        {/* Desktop Society chip */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100/80 border border-slate-200/60">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100/80 border border-slate-200/60 shrink-0">
           <span className="material-symbols-outlined text-primary text-[20px]">domain</span>
           <div className="flex flex-col text-left">
             <span className="text-xs font-semibold text-slate-800 leading-tight">Green Valley Residency</span>
-            <span className="text-[10px] text-slate-500 font-medium">480 Units • Tier-1 Society</span>
+            <span className="text-[10px] text-slate-500 font-medium">Community Operations Hub</span>
           </div>
         </div>
 
@@ -61,7 +60,7 @@ export const Header: React.FC = () => {
             <button
               key={tower}
               onClick={() => setSelectedTower(tower)}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+              className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
                 selectedTower === tower
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -74,35 +73,42 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Right Action Cluster */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Quick Shift indicator */}
-        <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-medium">
-          <span className="material-symbols-outlined text-slate-500 text-[16px]">schedule</span>
-          <span>Morning Shift (06:00 - 14:00)</span>
-        </div>
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Notifications Bell */}
+        <button
+          onClick={() => setActiveTab('notifications')}
+          title="Notifications"
+          className="relative p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[20px]">notifications</span>
+          {unreadNotificationsCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
+              {unreadNotificationsCount}
+            </span>
+          )}
+        </button>
 
         {/* Active Alert Flag */}
         {activeIncidents.length > 0 && (
           <button
             onClick={() => setActiveTab('incident-reporting')}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold animate-pulse border border-red-200 hover:bg-red-200 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200 hover:bg-red-200 transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">warning</span>
-            <span>{activeIncidents.length} Gate Alert{activeIncidents.length > 1 ? 's' : ''}</span>
+            <span>{activeIncidents.length} Alert{activeIncidents.length > 1 ? 's' : ''}</span>
           </button>
         )}
 
         {/* Emergency SOS Button */}
         <button
           onClick={() => setIsSosModalOpen(true)}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-sm active:scale-95 transition-all"
+          className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-sm active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined text-[16px]">e911_emergency</span>
-          <span className="hidden sm:inline">EMERGENCY SOS</span>
-          <span className="sm:hidden">SOS</span>
+          <span className="hidden sm:inline">SOS</span>
         </button>
 
-        {/* Active Role Badge: Clickable to switch between assigned roles if multi-role */}
+        {/* Active Role Badge */}
         {hasMultipleRoles ? (
           <button
             onClick={() => setIsRoleSwitcherOpen(true)}
@@ -142,7 +148,7 @@ export const Header: React.FC = () => {
           />
         </div>
 
-        {/* Explicit Sign Out Button */}
+        {/* Sign Out */}
         <button
           onClick={logout}
           title="Sign out of your session"

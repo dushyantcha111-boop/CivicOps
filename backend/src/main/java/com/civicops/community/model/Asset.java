@@ -51,7 +51,7 @@ public class Asset {
     @Builder.Default
     private Integer mtbfHours = 1000;
 
-    @Column(name = "mttr_hours")
+    @Column(name = "mttr_hours", precision = 5, scale = 2)
     @Builder.Default
     private BigDecimal mttrHours = new BigDecimal("2.0");
 
@@ -66,6 +66,10 @@ public class Asset {
 
     @Column(name = "vendor_contact", length = 150)
     private String vendorContact;
+
+    @Column(name = "active_work_orders_count")
+    @Builder.Default
+    private Integer activeWorkOrdersCount = 0;
 
     @Column(name = "created_at", updatable = false)
     @Builder.Default

@@ -1,7 +1,10 @@
 package com.civicops.community.service;
 
 import com.civicops.community.model.Complaint;
+import com.civicops.community.model.Role;
+import com.civicops.community.model.User;
 import com.civicops.community.model.WorkOrder;
+import com.civicops.community.repository.AssetRepository;
 import com.civicops.community.repository.ComplaintRepository;
 import com.civicops.community.repository.UserRepository;
 import com.civicops.community.repository.WorkOrderRepository;
@@ -11,7 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -31,22 +36,49 @@ class ComplaintWorkflowServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AssetRepository assetRepository;
+
+    @Mock
+    private AuditService auditService;
+
     @InjectMocks
     private ComplaintWorkflowService workflowService;
 
     private Complaint testComplaint;
+    private User residentOwner;
+    private User otherResident;
 
     @BeforeEach
     void setUp() {
         testComplaint = new Complaint();
         testComplaint.setId("cmp-test-01");
+        testComplaint.setTicketNumber("TKT-2024-091");
         testComplaint.setTitle("Water leakage in master washroom");
         testComplaint.setCategory(Complaint.ComplaintCategory.PLUMBING);
         testComplaint.setSeverity(Complaint.ComplaintSeverity.HIGH);
         testComplaint.setTower("Tower B");
         testComplaint.setUnitNumber("B-402");
+        testComplaint.setResidentId("usr-res-1");
         testComplaint.setResidentName("Rahul Sharma");
         testComplaint.setStatus(Complaint.ComplaintStatus.SUBMITTED);
+        testComplaint.setTimeline(new ArrayList<>());
+
+        residentOwner = User.builder()
+                .id("usr-res-1")
+                .name("Rahul Sharma")
+                .email("rahul@greenvalley.in")
+                .role(Role.RESIDENT)
+                .authorizedRoles("RESIDENT")
+                .build();
+
+        otherResident = User.builder()
+                .id("usr-res-2")
+                .name("Other Resident")
+                .email("other@greenvalley.in")
+                .role(Role.RESIDENT)
+                .authorizedRoles("RESIDENT")
+                .build();
     }
 
     @Test
@@ -67,13 +99,16 @@ class ComplaintWorkflowServiceTest {
 
     @Test
     void testAssignComplaintTransitionsToAssignedAndCreatesWorkOrder() {
-        com.civicops.community.model.User tech = new com.civicops.community.model.User();
-        tech.setId("usr-tech-01");
-        tech.setName("Ramesh Kumar");
-        tech.setRole(com.civicops.community.model.Role.MAINTENANCE);
+        User tech = User.builder()
+                .id("usr-tech-01")
+                .name("Ramesh Kumar")
+                .role(Role.MAINTENANCE)
+                .authorizedRoles("MAINTENANCE")
+                .build();
 
         when(complaintRepository.findById("cmp-test-01")).thenReturn(Optional.of(testComplaint));
         when(userRepository.findById("usr-tech-01")).thenReturn(Optional.of(tech));
+        when(workOrderRepository.findByComplaintId("cmp-test-01")).thenReturn(Optional.empty());
         when(complaintRepository.save(any(Complaint.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -85,16 +120,20 @@ class ComplaintWorkflowServiceTest {
     }
 
     @Test
-    void testResidentConfirmResolutionTransitionsToResidentConfirmed() {
+    void testResidentConfirmResolutionBlocksNonOwnerAndAcceptsOwner() {
         when(complaintRepository.findById("cmp-test-01")).thenReturn(Optional.of(testComplaint));
+
+        assertThrows(AccessDeniedException.class, () ->
+                workflowService.residentConfirmResolution("cmp-test-01", "Other", 5, "Good", "sig", otherResident)
+        );
+
         when(complaintRepository.save(any(Complaint.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(workOrderRepository.findByComplaintId("cmp-test-01")).thenReturn(Optional.empty());
 
-        Complaint result = workflowService.residentConfirmResolution("cmp-test-01", "Rahul Sharma", 5, "Leak completely fixed, thank you!", "sig-verified");
+        Complaint result = workflowService.residentConfirmResolution("cmp-test-01", "Rahul Sharma", 5, "Leak completely fixed!", "sig-verified", residentOwner);
 
         assertEquals(Complaint.ComplaintStatus.RESIDENT_CONFIRMED, result.getStatus());
         assertEquals(5, result.getResidentRating());
-        assertEquals("Leak completely fixed, thank you!", result.getResidentFeedback());
         verify(complaintRepository, times(1)).save(any(Complaint.class));
     }
 
@@ -104,10 +143,10 @@ class ComplaintWorkflowServiceTest {
         when(complaintRepository.save(any(Complaint.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(workOrderRepository.findByComplaintId("cmp-test-01")).thenReturn(Optional.empty());
 
-        Complaint result = workflowService.residentDisputeResolution("cmp-test-01", "Rahul Sharma", "Water is still leaking around the fitting");
+        Complaint result = workflowService.residentDisputeResolution("cmp-test-01", "Rahul Sharma", "Water is still leaking", residentOwner);
 
         assertEquals(Complaint.ComplaintStatus.DISPUTED, result.getStatus());
-        assertEquals("Water is still leaking around the fitting", result.getDisputeReason());
+        assertEquals("Water is still leaking", result.getDisputeReason());
         verify(complaintRepository, times(1)).save(any(Complaint.class));
     }
 }

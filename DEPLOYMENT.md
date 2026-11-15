@@ -55,7 +55,7 @@ This guide outlines the production deployment architecture for **CivicOps — Sm
 
 1. Provision a Cloud SQL PostgreSQL 15+ instance in `asia-southeast1`.
 2. Create database `civicops_db` and user `civicops_user`.
-3. Flyway migrations (`V1__init_schema.sql`, `V2__seed_demo_data.sql`, `V3__add_requisitions_preventive_and_roles.sql`) will automatically execute and initialize the schema upon Spring Boot application startup.
+3. Flyway migrations (`V1__init_schema.sql`, `V2__seed_demo_data.sql`, `V3__add_requisitions_preventive_and_roles.sql`, `V4__complete_schema_and_modules.sql`) will automatically execute and initialize the schema upon Spring Boot application startup.
 
 ---
 

@@ -42,12 +42,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
 
     try {
       const res = await ApiService.register({
-        name: fullName,
-        email: email,
-        phone: phone || '+91 98765 43210',
+        name: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
         password: password,
         tower: tower,
-        unitNumber: unitNumber
+        unitNumber: unitNumber.trim()
       });
 
       setCurrentUser(res.user);

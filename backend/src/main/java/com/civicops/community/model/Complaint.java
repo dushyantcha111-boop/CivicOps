@@ -1,5 +1,9 @@
 package com.civicops.community.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -54,6 +58,9 @@ public class Complaint {
     @Column(name = "resident_phone", nullable = false)
     private String residentPhone;
 
+    @Column(name = "asset_id", length = 64)
+    private String assetId;
+
     @Column(name = "assigned_technician_id")
     private String assignedTechnicianId;
 
@@ -63,12 +70,14 @@ public class Complaint {
     @Column(name = "sla_deadline", nullable = false)
     private LocalDateTime slaDeadline;
 
+    @Builder.Default
     @Column(name = "sla_breached")
     private Boolean slaBreached = false;
 
     @Column(name = "recurrence_warning")
     private String recurrenceWarning;
 
+    @Builder.Default
     @Column(name = "recurring_count")
     private Integer recurringCount = 1;
 
@@ -77,6 +86,18 @@ public class Complaint {
 
     @Column(name = "proposed_resolution", columnDefinition = "TEXT")
     private String proposedResolution;
+
+    @JsonIgnore
+    @Column(name = "evidence_before", columnDefinition = "TEXT")
+    private String evidenceBeforeJson;
+
+    @JsonIgnore
+    @Column(name = "evidence_after", columnDefinition = "TEXT")
+    private String evidenceAfterJson;
+
+    @JsonIgnore
+    @Column(name = "proposed_spares", columnDefinition = "TEXT")
+    private String proposedSparesJson;
 
     @Column(name = "resident_rating")
     private Integer residentRating;
@@ -87,15 +108,62 @@ public class Complaint {
     @Column(name = "dispute_reason", columnDefinition = "TEXT")
     private String disputeReason;
 
+    @JsonManagedReference
+    @Builder.Default
     @OneToMany(mappedBy = "complaint", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("stepNumber ASC")
     private List<ComplaintTimeline> timeline = new ArrayList<>();
 
+    @Builder.Default
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt = LocalDateTime.now();
+
+    @Builder.Default
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Builder.Default
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @JsonProperty("evidenceBefore")
+    public List<String> getEvidenceBefore() {
+        return JsonFieldHelper.readList(evidenceBeforeJson, new TypeReference<>() {});
+    }
+
+    @JsonProperty("evidenceBefore")
+    public void setEvidenceBefore(List<String> list) {
+        this.evidenceBeforeJson = JsonFieldHelper.writeList(list);
+    }
+
+    @JsonProperty("evidenceAfter")
+    public List<String> getEvidenceAfter() {
+        return JsonFieldHelper.readList(evidenceAfterJson, new TypeReference<>() {});
+    }
+
+    @JsonProperty("evidenceAfter")
+    public void setEvidenceAfter(List<String> list) {
+        this.evidenceAfterJson = JsonFieldHelper.writeList(list);
+    }
+
+    @JsonProperty("proposedSpares")
+    public List<ProposedSpareItem> getProposedSpares() {
+        return JsonFieldHelper.readList(proposedSparesJson, new TypeReference<>() {});
+    }
+
+    @JsonProperty("proposedSpares")
+    public void setProposedSpares(List<ProposedSpareItem> list) {
+        this.proposedSparesJson = JsonFieldHelper.writeList(list);
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProposedSpareItem {
+        private String partId;
+        private String partName;
+        private int quantity;
+    }
 
     public enum ComplaintCategory {
         PLUMBING, ELECTRICAL, ELEVATOR, HVAC, CIVIL, SECURITY, COMMON_AREA

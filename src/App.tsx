@@ -36,10 +36,36 @@ import { SparesInventoryReorderView } from './components/views/SparesInventoryRe
 import { SparesRequisitionApprovalView } from './components/views/SparesRequisitionApprovalView';
 import { PreventiveMaintenanceCalendarView } from './components/views/PreventiveMaintenanceCalendarView';
 import { SettingsRolesPermissionsView } from './components/views/SettingsRolesPermissionsView';
+import { CommunityHubView } from './components/views/CommunityHubView';
+import { NotificationsView } from './components/views/NotificationsView';
+import { AuditLogsView } from './components/views/AuditLogsView';
+import { getDefaultTabForRole, isTabAllowedForRole } from './config/rbac';
 
 const MainContent: React.FC = () => {
-  const { isAuthenticated, isRoleSelectionPending, selectAuthorizedRole, activeTab, toast } = useApp();
+  const {
+    isAuthenticated,
+    authChecking,
+    isRoleSelectionPending,
+    selectAuthorizedRole,
+    role,
+    activeTab,
+    toast
+  } = useApp();
   const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+
+  // Avoid flashing LoginPage while validating existing session JWT with /auth/me
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3 text-slate-600">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+          <span className="material-symbols-outlined animate-spin text-[24px]">progress_activity</span>
+        </div>
+        <p className="text-xs font-bold tracking-wide uppercase text-slate-500">
+          Verifying CivicOps Session...
+        </p>
+      </div>
+    );
+  }
 
   // Login-first entry point: If unauthenticated, render Login or Signup
   if (!isAuthenticated) {
@@ -54,8 +80,10 @@ const MainContent: React.FC = () => {
     return <AuthorizedRoleSelectPage onRoleSelected={(r) => selectAuthorizedRole(r)} />;
   }
 
+  const safeTab = isTabAllowedForRole(role, activeTab) ? activeTab : getDefaultTabForRole(role);
+
   const renderActiveView = () => {
-    switch (activeTab) {
+    switch (safeTab) {
       case 'management-overview':
         return <ManagementOverviewView />;
       case 'resident-home':
@@ -102,10 +130,16 @@ const MainContent: React.FC = () => {
         return <SparesRequisitionApprovalView />;
       case 'preventive-maintenance':
         return <PreventiveMaintenanceCalendarView />;
+      case 'community-hub':
+        return <CommunityHubView />;
+      case 'notifications':
+        return <NotificationsView />;
+      case 'audit-logs':
+        return <AuditLogsView />;
       case 'settings-roles':
         return <SettingsRolesPermissionsView />;
       default:
-        return <ManagementOverviewView />;
+        return <ResidentHomeView />;
     }
   };
 

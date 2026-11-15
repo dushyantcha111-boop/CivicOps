@@ -24,6 +24,7 @@ public class UserResponseDto {
     private String tower;
     private String avatarUrl;
     private String designation;
+    private Boolean active;
     private LocalDateTime createdAt;
 
     public static UserResponseDto fromEntity(User user) {
@@ -40,6 +41,7 @@ public class UserResponseDto {
                 .tower(user.getTower())
                 .avatarUrl(user.getAvatarUrl())
                 .designation(user.getDesignation())
+                .active(user.getActive() == null || user.getActive())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

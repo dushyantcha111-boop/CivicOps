@@ -5,9 +5,15 @@ export const MaintenanceDashboardView: React.FC = () => {
   const { workOrders, assets, spares, requisitions, setActiveTab, setSelectedWorkOrderId } = useApp();
 
   const openWorkOrders = workOrders.filter((w) => w.status !== 'COMPLETED');
+  const completedWorkOrdersCount = workOrders.filter((w) => w.status === 'COMPLETED').length;
   const criticalAssets = assets.filter((a) => a.status === 'CRITICAL' || a.status === 'DEGRADING');
   const lowSpares = spares.filter((s) => s.currentStock <= s.minThreshold);
   const pendingReqs = requisitions.filter((r) => r.status === 'PENDING_APPROVAL');
+  const avgMttr =
+    assets.length > 0
+      ? (assets.reduce((sum, a) => sum + Number(a.mttrHours || 0), 0) / assets.length).toFixed(1)
+      : '0.0';
+  const lowestSpare = [...lowSpares].sort((a, b) => a.currentStock - b.currentStock)[0];
 
   return (
     <div className="flex flex-col w-full max-w-7xl mx-auto space-y-6 pb-20">
@@ -23,7 +29,7 @@ export const MaintenanceDashboardView: React.FC = () => {
             Maintenance &amp; Asset Command Dashboard
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Plant &amp; machinery telemetry, field technician dispatch, and spares logistics
+            Plant &amp; machinery health, field technician dispatch, and spares logistics
           </p>
         </div>
 
@@ -54,7 +60,7 @@ export const MaintenanceDashboardView: React.FC = () => {
                 Active Work Orders
               </span>
               <div className="text-2xl font-bold font-headline text-slate-900 mt-1">
-                {openWorkOrders.length} In Progress
+                {openWorkOrders.length} Open
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
@@ -62,8 +68,8 @@ export const MaintenanceDashboardView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 text-xs text-slate-500 flex justify-between">
-            <span>SLA On-Track</span>
-            <span className="font-bold text-emerald-700">100%</span>
+            <span>Completed WOs</span>
+            <span className="font-bold text-emerald-700">{completedWorkOrdersCount} / {workOrders.length}</span>
           </div>
         </div>
 
@@ -71,10 +77,10 @@ export const MaintenanceDashboardView: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Critical Assets
+                Critical / Degrading Assets
               </span>
               <div className="text-2xl font-bold font-headline text-red-600 mt-1">
-                {criticalAssets.length} Needs Attention
+                {criticalAssets.length} Attention
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
@@ -82,8 +88,12 @@ export const MaintenanceDashboardView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 text-xs text-slate-500 flex justify-between">
-            <span>Lift #2 &amp; PRV-B4</span>
-            <span className="font-bold text-red-600">Elevated Risk</span>
+            <span className="truncate max-w-[140px]">
+              {criticalAssets[0] ? criticalAssets[0].name : 'All Operational'}
+            </span>
+            <span className="font-bold text-red-600">
+              {criticalAssets.length > 0 ? 'Elevated Risk' : 'Healthy'}
+            </span>
           </div>
         </div>
 
@@ -102,8 +112,12 @@ export const MaintenanceDashboardView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 text-xs text-slate-500 flex justify-between">
-            <span>DG Fuel Separator</span>
-            <span className="font-bold text-amber-700">1 Unit Left</span>
+            <span className="truncate max-w-[130px]">
+              {lowestSpare ? lowestSpare.name : 'Stock Adequate'}
+            </span>
+            <span className="font-bold text-amber-700">
+              {lowestSpare ? `${lowestSpare.currentStock} Left` : 'OK'}
+            </span>
           </div>
         </div>
 
@@ -114,7 +128,7 @@ export const MaintenanceDashboardView: React.FC = () => {
                 Mean Time to Repair
               </span>
               <div className="text-2xl font-bold font-headline text-emerald-700 mt-1">
-                2.1 <span className="text-sm font-normal text-slate-500">Hours</span>
+                {avgMttr} <span className="text-sm font-normal text-slate-500">Hours</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
@@ -122,15 +136,14 @@ export const MaintenanceDashboardView: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 text-xs text-slate-500 flex justify-between">
-            <span>Benchmarked target</span>
-            <span className="font-bold text-slate-800">&lt; 3.0h</span>
+            <span>Assets Tracked</span>
+            <span className="font-bold text-slate-800">{assets.length} Units</span>
           </div>
         </div>
       </div>
 
       {/* Split: Work Orders & Asset Health */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Work Orders List */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
             <h3 className="font-headline font-bold text-slate-900 text-sm">
@@ -145,44 +158,50 @@ export const MaintenanceDashboardView: React.FC = () => {
           </div>
 
           <div className="divide-y divide-slate-100">
-            {workOrders.map((wo) => (
-              <div
-                key={wo.id}
-                onClick={() => {
-                  setSelectedWorkOrderId(wo.id);
-                  setActiveTab('work-order-details');
-                }}
-                className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-primary">{wo.woNumber}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                      {wo.type}
+            {workOrders.map((wo) => {
+              const checklist = wo.checklists || [];
+              return (
+                <div
+                  key={wo.id}
+                  onClick={() => {
+                    setSelectedWorkOrderId(wo.id);
+                    setActiveTab('work-order-details');
+                  }}
+                  className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-primary">{wo.woNumber}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                        {wo.type}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-xs mt-1 leading-tight">{wo.title}</h4>
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      {wo.location} • Lead: {wo.technicianName}
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        wo.priority === 'URGENT'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {wo.priority}
+                    </span>
+                    <span className="block text-[11px] text-slate-400 mt-1">
+                      {checklist.filter((c) => c.completed).length}/{checklist.length} done
                     </span>
                   </div>
-                  <h4 className="font-bold text-slate-900 text-xs mt-1 leading-tight">{wo.title}</h4>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    {wo.location} • Lead: {wo.technicianName}
-                  </div>
                 </div>
-
-                <div className="text-right shrink-0">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      wo.priority === 'URGENT'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}
-                  >
-                    {wo.priority}
-                  </span>
-                  <span className="block text-[11px] text-slate-400 mt-1">
-                    {wo.checklists.filter((c) => c.completed).length}/{wo.checklists.length} done
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+            {workOrders.length === 0 && (
+              <div className="p-8 text-center text-xs text-slate-400">No work orders found.</div>
+            )}
           </div>
         </div>
 

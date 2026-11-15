@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { ApiService } from '../../services/api';
+import { RecurrenceCluster, ReliabilityRadarData } from '../../types';
 
 export const ManagementOverviewView: React.FC = () => {
   const {
     complaints,
     workOrders,
     assets,
-    visitorPasses,
+    units,
+    incidents,
     selectedTower,
     setActiveTab,
     setSelectedComplaintId,
@@ -14,66 +17,160 @@ export const ManagementOverviewView: React.FC = () => {
     showToast
   } = useApp();
 
-  const filteredComplaints = complaints.filter(
-    (c) => selectedTower === 'All Towers' || c.tower === selectedTower
-  );
+  const [windowDays, setWindowDays] = useState<number>(30);
+  const [radar, setRadar] = useState<ReliabilityRadarData | null>(null);
+  const [clusters, setClusters] = useState<RecurrenceCluster[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([ApiService.getReliabilityRadar(), ApiService.getRecurrenceQueue(windowDays)]).then(
+      ([radarRes, recRes]) => {
+        if (cancelled) return;
+        if (radarRes.status === 'fulfilled') setRadar(radarRes.value);
+        if (recRes.status === 'fulfilled') setClusters(recRes.value);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [windowDays, complaints.length, assets.length, workOrders.length]);
+
+  const filteredComplaints = useMemo(() => {
+    const cutoff = Date.now() - windowDays * 24 * 60 * 60 * 1000;
+    return complaints.filter((c) => {
+      if (selectedTower !== 'All Towers' && c.tower !== selectedTower) return false;
+      const submittedTime = new Date(c.submittedAt).getTime();
+      if (!Number.isNaN(submittedTime) && windowDays < 365 && submittedTime < cutoff) {
+        return false;
+      }
+      return true;
+    });
+  }, [complaints, selectedTower, windowDays]);
 
   const activeComplaints = filteredComplaints.filter(
     (c) => c.status !== 'CLOSED' && c.status !== 'RESIDENT_CONFIRMED'
   );
+  const urgentComplaints = activeComplaints.filter(
+    (c) => c.severity === 'CRITICAL' || c.severity === 'HIGH'
+  );
+  const awaitingResidentSignoff = filteredComplaints.filter(
+    (c) => c.status === 'PROPOSED' || c.status === 'MANAGEMENT_APPROVED'
+  );
 
-  const urgentComplaints = activeComplaints.filter((c) => c.severity === 'CRITICAL' || c.severity === 'HIGH');
-  const activeWorkOrders = workOrders.filter((w) => w.status !== 'COMPLETED');
-  const activePasses = visitorPasses.filter((p) => p.status === 'ENTERED' || p.status === 'ACTIVE');
+  const filteredUnits = units.filter((u) => selectedTower === 'All Towers' || u.tower === selectedTower);
+  const occupiedUnitsCount = filteredUnits.filter((u) => u.occupancyStatus === 'OCCUPIED').length;
+  const occupancyPct = filteredUnits.length > 0 ? Math.round((occupiedUnitsCount / filteredUnits.length) * 100) : 0;
+  const overdueDuesUnits = filteredUnits.filter((u) => u.duesStatus !== 'PAID' && Number(u.duesAmount || 0) > 0).length;
+
+  const filteredAssets = assets.filter((a) => selectedTower === 'All Towers' || a.tower === selectedTower);
+  const avgAssetHealth =
+    filteredAssets.length > 0
+      ? (filteredAssets.reduce((sum, a) => sum + Number(a.healthScore || 0), 0) / filteredAssets.length).toFixed(1)
+      : '—';
+  const activeWorkOrders = workOrders.filter(
+    (w) => (selectedTower === 'All Towers' || w.tower === selectedTower) && w.status !== 'COMPLETED'
+  );
+  const activeIncidentsCount = incidents.filter((i) => i.status !== 'RESOLVED').length;
+
+  const slaRate =
+    filteredComplaints.length > 0
+      ? Math.round(
+          (filteredComplaints.filter((c) => !c.slaBreached).length / filteredComplaints.length) * 100
+        )
+      : 100;
+
+  const weakestAxis =
+    radar?.radarAxes && radar.radarAxes.length > 0
+      ? [...radar.radarAxes].sort((a, b) => a.score - b.score)[0]
+      : null;
+
+  const handleExportBrief = () => {
+    const rows = [
+      ['Ticket Number', 'Title', 'Tower', 'Unit', 'Category', 'Severity', 'Status', 'SLA Breached', 'Submitted At'],
+      ...filteredComplaints.map((c) => [
+        c.ticketNumber,
+        `"${(c.title || '').replace(/"/g, '""')}"`,
+        c.tower,
+        c.unitNumber,
+        c.category,
+        c.severity,
+        c.status,
+        String(c.slaBreached),
+        c.submittedAt
+      ])
+    ];
+    const csv = rows.map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `civicops-operations-brief-${windowDays}d.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast('Operations SLA brief exported as CSV.');
+  };
 
   return (
     <div className="flex flex-col w-full max-w-7xl mx-auto space-y-6">
-      {/* Top Bar / Breadcrumb & Status Ribbon */}
+      {/* Top Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
             <span>Estate Governance</span>
             <span className="text-slate-300">/</span>
             <span className="text-primary font-bold">Executive Operations Pulse</span>
-            <span className="text-slate-300">/</span>
-            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">
-              Real-Time Sync
-            </span>
           </div>
-          <div className="flex items-baseline gap-3 mt-1">
+          <div className="flex items-baseline gap-3 mt-1 flex-wrap">
             <h1 className="font-headline font-bold text-2xl lg:text-3xl text-slate-900 tracking-tight">
               Executive Management Overview
             </h1>
-            <span className="text-xs text-emerald-700 flex items-center gap-1 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Telemetry Live (1.2s lag)
+            <span
+              className={`text-xs flex items-center gap-1 font-semibold px-2.5 py-0.5 rounded-full border ${
+                activeIncidentsCount > 0
+                  ? 'text-red-700 bg-red-50 border-red-200'
+                  : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+              }`}
+            >
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${
+                  activeIncidentsCount > 0 ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'
+                }`}
+              ></span>
+              {activeIncidentsCount > 0 ? `${activeIncidentsCount} Active Incidents` : 'Live PostgreSQL Sync'}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Green Valley Residency • {selectedTower} • Rolling 30-Day Operational SLA Window
+            Green Valley Residency • {selectedTower} • Rolling {windowDays}-Day Operational Window
           </p>
         </div>
 
-        {/* Quick Actions & Date Presets */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center bg-white rounded-lg border border-slate-200 shadow-2xs p-1">
-            <button className="px-3 py-1 rounded-md text-xs font-bold bg-primary text-white shadow-2xs">
-              Last 14 Days
-            </button>
-            <button className="px-3 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900">
-              This Month
-            </button>
-            <button className="px-3 py-1 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900">
-              Q3 FY25
-            </button>
+            {[
+              { days: 14, label: 'Last 14 Days' },
+              { days: 30, label: '30 Days' },
+              { days: 90, label: '90 Days' }
+            ].map((opt) => (
+              <button
+                key={opt.days}
+                onClick={() => setWindowDays(opt.days)}
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
+                  windowDays === opt.days
+                    ? 'bg-primary text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
           <button
-            onClick={() => showToast('Forensic SLA & Operations Brief downloaded')}
+            onClick={handleExportBrief}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs"
           >
             <span className="material-symbols-outlined text-[16px]">file_download</span>
-            <span>Export Brief</span>
+            <span>Export CSV Brief</span>
           </button>
 
           <button
@@ -86,40 +183,40 @@ export const ManagementOverviewView: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Grid (8 Master Metrics matching Stitch) */}
+      {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. Total Residents & Units */}
-        <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Occupancy &amp; Population
+                Units &amp; Dues Health
               </span>
-              <div className="text-2xl font-bold font-headline text-slate-900 mt-1">1,420 Residents</div>
+              <div className="text-2xl font-bold font-headline text-slate-900 mt-1">
+                {filteredUnits.length} Units
+              </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-blue-100 text-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-[22px]">group</span>
+              <span className="material-symbols-outlined text-[22px]">apartment</span>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
             <div className="flex justify-between text-xs text-slate-600">
               <span>Occupancy</span>
-              <span className="font-bold text-slate-900">480 / 480 Units (100%)</span>
+              <span className="font-bold text-slate-900">
+                {occupiedUnitsCount} / {filteredUnits.length} ({occupancyPct}%)
+              </span>
             </div>
             <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-              <div className="bg-primary h-full rounded-full w-full"></div>
+              <div className="bg-primary h-full rounded-full" style={{ width: `${occupancyPct}%` }}></div>
             </div>
             <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-              <span className="text-emerald-600 font-bold flex items-center">
-                <span className="material-symbols-outlined text-[14px]">arrow_upward</span> +12 this mo
-              </span>
-              <span>98.2% App Active</span>
+              <span>Pending Dues Flats</span>
+              <span className="font-bold text-amber-700">{overdueDuesUnits} Units</span>
             </div>
           </div>
         </div>
 
-        {/* 2. Active Complaints */}
-        <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -139,7 +236,7 @@ export const ManagementOverviewView: React.FC = () => {
                 {urgentComplaints.length} Urgent
               </span>
               <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">
-                {activeComplaints.filter((c) => c.status === 'ASSIGNED' || c.status === 'INSPECTING').length} In Progress
+                {activeComplaints.filter((c) => c.status === 'ASSIGNED' || c.status === 'INSPECTING').length} Field
               </span>
               <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
                 {activeComplaints.filter((c) => c.status === 'SUBMITTED').length} Triage
@@ -147,21 +244,20 @@ export const ManagementOverviewView: React.FC = () => {
             </div>
             <div className="flex items-center justify-between text-xs text-slate-600 pt-1">
               <span>SLA Adherence</span>
-              <span className="text-emerald-700 font-bold">94.2%</span>
+              <span className="text-emerald-700 font-bold">{radar ? `${radar.slaCompliancePercentage}%` : `${slaRate}%`}</span>
             </div>
           </div>
         </div>
 
-        {/* 3. High Severity Gates */}
         <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 left-0 right-0 h-1 bg-red-600"></div>
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider">
-                High Severity Gates
+                Priority &amp; Verification
               </span>
               <div className="text-2xl font-bold font-headline text-red-600 mt-1">
-                {urgentComplaints.length} Urgent
+                {urgentComplaints.length} High/Critical
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
@@ -170,30 +266,30 @@ export const ManagementOverviewView: React.FC = () => {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1">
             <div className="text-xs text-slate-600 flex justify-between">
-              <span>Mean Response</span>
-              <span className="font-bold text-slate-900">18.4 mins</span>
+              <span>Pending Resident Sign-off</span>
+              <span className="font-bold text-amber-600">{awaitingResidentSignoff.length}</span>
             </div>
             <div className="text-xs text-slate-600 flex justify-between">
-              <span>Pending Resident Sign-off</span>
-              <span className="font-bold text-amber-600">
-                {complaints.filter((c) => c.status === 'PROPOSED').length}
+              <span>Disputed Tickets</span>
+              <span className="font-bold text-red-600">
+                {filteredComplaints.filter((c) => c.status === 'DISPUTED').length}
               </span>
             </div>
-            <div className="text-[11px] text-red-600 font-medium pt-0.5">
-              Target Resolution: &lt; 4 Hours
+            <div className="text-[11px] text-slate-500 font-medium pt-0.5">
+              Window: {filteredComplaints.length} total complaints
             </div>
           </div>
         </div>
 
-        {/* 4. Infrastructure Health & Assets */}
-        <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white rounded-xl p-4 shadow-2xs border border-slate-200 flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Asset Reliability
               </span>
               <div className="text-2xl font-bold font-headline text-slate-900 mt-1">
-                87.4 <span className="text-sm font-normal text-slate-500">/ 100</span>
+                {radar ? radar.overallReliabilityScore : avgAssetHealth}{' '}
+                <span className="text-sm font-normal text-slate-500">/ 100</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
@@ -202,24 +298,25 @@ export const ManagementOverviewView: React.FC = () => {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
             <div className="flex justify-between text-xs text-slate-600">
-              <span>Critical Assets</span>
-              <span className="font-bold text-slate-900">{assets.length} Monitored</span>
+              <span>Assets Monitored</span>
+              <span className="font-bold text-slate-900">{filteredAssets.length} Registered</span>
             </div>
             <div className="flex items-center justify-between text-xs text-slate-600">
               <span>Open Work Orders</span>
-              <span className="font-bold text-primary">{activeWorkOrders.length} Scheduled</span>
+              <span className="font-bold text-primary">{activeWorkOrders.length} Active</span>
             </div>
             <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-              <span>MTBF: 850 hrs</span>
-              <span className="text-emerald-600 font-bold">Radar Tier-A</span>
+              <span>PM Compliance</span>
+              <span className="text-emerald-600 font-bold">
+                {radar ? `${radar.pmCompliancePercentage}%` : 'Live'}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Operational Modules Row: Intelligence Shortcuts */}
+      {/* Intelligence Shortcuts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Community Memory Graph Card */}
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -230,15 +327,17 @@ export const ManagementOverviewView: React.FC = () => {
                 </h3>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
-                FORENSIC LINEAGE
+                TOPOLOGY
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Explore interconnected failure patterns across Tower B water risers, Elevator #2 door leveling, and DG set quarterly filters.
+              Explore live PostgreSQL relationships across towers, infrastructure assets, complaints, work orders, and assigned technicians.
             </p>
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex justify-between items-center mb-4">
-              <span className="text-slate-500">Graph Recurrence Nodes:</span>
-              <span className="font-mono font-bold text-primary">14 Nodes • 24 Edges</span>
+              <span className="text-slate-500">Tracked Entities:</span>
+              <span className="font-mono font-bold text-primary">
+                {filteredAssets.length} Assets • {filteredComplaints.length} Tickets
+              </span>
             </div>
           </div>
           <button
@@ -250,7 +349,6 @@ export const ManagementOverviewView: React.FC = () => {
           </button>
         </div>
 
-        {/* Reliability Radar Card */}
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -261,15 +359,17 @@ export const ManagementOverviewView: React.FC = () => {
                 </h3>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                SLA 94.2%
+                {radar ? `SLA ${radar.slaCompliancePercentage}%` : `SLA ${slaRate}%`}
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Multi-axial radar scoring society health: Power Grid, Water Riser, Vertical Elevators, Fire Protection, and Gate ANPR.
+              Dynamic multi-axis scoring computed from live asset health, open complaints, work order closure, and PM compliance.
             </p>
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex justify-between items-center mb-4">
-              <span className="text-slate-500">Weakest Subsystem:</span>
-              <span className="font-bold text-red-600">Elevator #2 (68/100)</span>
+              <span className="text-slate-500">Lowest Subsystem:</span>
+              <span className="font-bold text-amber-700">
+                {weakestAxis ? `${weakestAxis.axis} (${weakestAxis.score}/100)` : 'Calculating...'}
+              </span>
             </div>
           </div>
           <button
@@ -281,7 +381,6 @@ export const ManagementOverviewView: React.FC = () => {
           </button>
         </div>
 
-        {/* Recurrence Review Queue Card */}
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -292,15 +391,17 @@ export const ManagementOverviewView: React.FC = () => {
                 </h3>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-                3 CLUSTERS
+                {clusters.length} CLUSTERS
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed mb-4">
-              Identifies chronic repetitive faults before they escalate into resident disputes. 3 recurring tickets currently flagged in Tower B.
+              Flags recurring fault clusters within the {windowDays}-day window so management can schedule permanent preventive action.
             </p>
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex justify-between items-center mb-4">
-              <span className="text-slate-500">Root Cause Advisory:</span>
-              <span className="font-bold text-amber-700">Riser PRV-B4 Scaling</span>
+              <span className="text-slate-500">Top Hotspot:</span>
+              <span className="font-bold text-amber-700 truncate max-w-[170px]">
+                {clusters[0] ? `${clusters[0].tower} ${clusters[0].category}` : 'No active clusters'}
+              </span>
             </div>
           </div>
           <button
@@ -321,18 +422,16 @@ export const ManagementOverviewView: React.FC = () => {
               Active Complaint Triage &amp; Resolution Pipeline
             </h2>
             <p className="text-xs text-slate-500">
-              Showing tickets requiring management triage, technician action, or resident verification
+              Showing {Math.min(8, filteredComplaints.length)} of {filteredComplaints.length} complaints in rolling window
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab('complaint-operations')}
-              className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1"
-            >
-              <span>View Full Operations Board</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setActiveTab('complaint-operations')}
+            className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-1 self-start sm:self-auto"
+          >
+            <span>View Full Operations Board</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </button>
         </div>
 
         <div className="overflow-x-auto">
@@ -345,12 +444,12 @@ export const ManagementOverviewView: React.FC = () => {
                 <th className="py-3 px-4">Severity</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Assigned Tech</th>
-                <th className="py-3 px-4">SLA Time</th>
+                <th className="py-3 px-4">SLA Deadline</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredComplaints.slice(0, 6).map((c) => (
+              {filteredComplaints.slice(0, 8).map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50 transition-colors">
                   <td className="py-3.5 px-4 font-mono font-bold text-primary">{c.ticketNumber}</td>
                   <td className="py-3.5 px-4">
@@ -358,7 +457,7 @@ export const ManagementOverviewView: React.FC = () => {
                     <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
                       <span className="font-semibold text-slate-600">{c.category}</span>
                       {c.recurringCount && c.recurringCount > 1 && (
-                        <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.2 rounded">
+                        <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded">
                           {c.recurringCount}x Recurring
                         </span>
                       )}
@@ -384,9 +483,9 @@ export const ManagementOverviewView: React.FC = () => {
                   <td className="py-3.5 px-4">
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        c.status === 'PROPOSED'
+                        c.status === 'PROPOSED' || c.status === 'MANAGEMENT_APPROVED'
                           ? 'bg-purple-100 text-purple-700'
-                          : c.status === 'RESIDENT_CONFIRMED'
+                          : c.status === 'RESIDENT_CONFIRMED' || c.status === 'CLOSED'
                           ? 'bg-emerald-100 text-emerald-700'
                           : c.status === 'ASSIGNED'
                           ? 'bg-blue-100 text-blue-700'
@@ -395,7 +494,7 @@ export const ManagementOverviewView: React.FC = () => {
                           : 'bg-amber-100 text-amber-800'
                       }`}
                     >
-                      {c.status.replace('_', ' ')}
+                      {c.status.replace(/_/g, ' ')}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-slate-600 font-medium">
@@ -404,7 +503,7 @@ export const ManagementOverviewView: React.FC = () => {
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
-                    {new Date(c.slaDeadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {c.slaDeadline ? new Date(c.slaDeadline).toLocaleDateString() : '—'}
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <button
@@ -419,6 +518,13 @@ export const ManagementOverviewView: React.FC = () => {
                   </td>
                 </tr>
               ))}
+              {filteredComplaints.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                    No complaints recorded in this filter window.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -426,3 +532,4 @@ export const ManagementOverviewView: React.FC = () => {
     </div>
   );
 };
+

@@ -6,12 +6,15 @@ export interface User {
   email: string;
   phone: string;
   role: UserRole;
+  activeRole?: UserRole;
   authorizedRoles?: UserRole[];
   unitId?: string;
   unitNumber?: string;
   tower?: string;
   avatarUrl: string;
   designation?: string;
+  active?: boolean;
+  createdAt?: string;
 }
 
 export interface Unit {
@@ -19,16 +22,28 @@ export interface Unit {
   unitNumber: string;
   tower: string;
   floor: number;
-  type: '2BHK' | '3BHK' | '4BHK' | 'Penthouse';
+  type: '2BHK' | '3BHK' | '4BHK' | 'Penthouse' | string;
   ownerName: string;
   ownerPhone: string;
   isTenantOccupied: boolean;
   tenantName?: string;
   tenantPhone?: string;
-  occupancyStatus: 'OCCUPIED' | 'VACANT';
+  occupancyStatus: 'OCCUPIED' | 'VACANT' | string;
   duesAmount: number;
-  duesStatus: 'PAID' | 'DUE' | 'OVERDUE';
+  duesStatus: 'PAID' | 'DUE' | 'PENDING' | 'OVERDUE';
   registeredVehicles: string[];
+  residentUserId?: string;
+}
+
+export interface DuesPayment {
+  id: string;
+  unitId: string;
+  unitNumber: string;
+  residentId: string;
+  amount: number;
+  paymentRef: string;
+  paymentMethod: string;
+  paidAt: string;
 }
 
 export type ComplaintStatus =
@@ -71,6 +86,7 @@ export interface Complaint {
   residentId: string;
   residentName: string;
   residentPhone: string;
+  assetId?: string;
   submittedAt: string;
   updatedAt: string;
   assignedTechnicianId?: string;
@@ -121,15 +137,15 @@ export interface Asset {
   tower: string;
   location: string;
   installationDate: string;
-  warrantyExpiry: string;
-  healthScore: number; // 0 - 100
+  warrantyExpiry?: string;
+  healthScore: number;
   status: 'OPERATIONAL' | 'DEGRADING' | 'CRITICAL' | 'UNDER_MAINTENANCE';
   mtbfHours: number;
   mttrHours: number;
-  lastServicedDate: string;
-  nextScheduledPm: string;
-  vendorName: string;
-  vendorContact: string;
+  lastServicedDate?: string;
+  nextScheduledPm?: string;
+  vendorName?: string;
+  vendorContact?: string;
   activeWorkOrdersCount: number;
 }
 
@@ -147,10 +163,24 @@ export interface SparePart {
   compatibleAssets: string[];
 }
 
+export interface InventoryMovement {
+  id: string;
+  partId: string;
+  partName: string;
+  workOrderId?: string;
+  requisitionId?: string;
+  movementType: 'RESTOCK' | 'OUTBOUND_REQ' | 'ADJUSTMENT' | string;
+  quantity: number;
+  balanceAfter: number;
+  actorName: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface SpareRequisition {
   id: string;
   reqNumber: string;
-  workOrderId: string;
+  workOrderId?: string;
   technicianId: string;
   technicianName: string;
   partId: string;
@@ -167,8 +197,8 @@ export type PassStatus = 'PRE_APPROVED' | 'ACTIVE' | 'ENTERED' | 'EXITED' | 'EXP
 
 export interface VisitorPass {
   id: string;
-  passCode: string; // e.g. "GV-8921"
-  sixDigitPin: string; // e.g. "849201"
+  passCode: string;
+  sixDigitPin: string;
   visitorName: string;
   visitorPhone: string;
   visitorType: VisitorType;
@@ -190,12 +220,12 @@ export interface VisitorPass {
 export interface Parcel {
   id: string;
   trackingNumber: string;
-  carrier: 'SWIGGY' | 'ZOMATO' | 'AMAZON' | 'FLIPKART' | 'BLUEDART' | 'OTHER';
+  carrier: 'SWIGGY' | 'ZOMATO' | 'AMAZON' | 'FLIPKART' | 'BLUEDART' | 'OTHER' | string;
   recipientName: string;
   tower: string;
   unitNumber: string;
   deliveryAgentName: string;
-  deliveryAgentPhone: string;
+  deliveryAgentPhone?: string;
   lockerNumber?: string;
   pickupOtp: string;
   receivedAt: string;
@@ -208,7 +238,7 @@ export interface IncidentAlert {
   alertCode: string;
   title: string;
   severity: 'WARNING' | 'CRITICAL' | 'SOS_EMERGENCY';
-  category: 'FIRE' | 'LIFT_ENTRAPMENT' | 'SECURITY' | 'POWER_OUTAGE' | 'WATER_LEAK';
+  category: 'FIRE' | 'LIFT_ENTRAPMENT' | 'SECURITY' | 'POWER_OUTAGE' | 'WATER_LEAK' | string;
   tower: string;
   location: string;
   reportedBy: string;
@@ -217,16 +247,163 @@ export interface IncidentAlert {
   broadcastSent: boolean;
   smsSentCount: number;
   actionsTaken: string[];
+  resolvedAt?: string;
+  resolvedBy?: string;
+  resolutionNotes?: string;
 }
 
 export interface PreventiveSchedule {
   id: string;
   taskCode: string;
   title: string;
+  assetId?: string;
   assetName: string;
   tower: string;
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY';
+  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
   nextDueDate: string;
   assignedTeam: string;
   status: 'SCHEDULED' | 'IN_PROGRESS' | 'OVERDUE' | 'COMPLETED';
+}
+
+export interface PreventiveCompletionLog {
+  id: string;
+  scheduleId: string;
+  workOrderId?: string;
+  completedBy: string;
+  notes?: string;
+  completedAt: string;
+}
+
+export interface MemoryGraphNode {
+  id: string;
+  sourceId: string;
+  sourceType: 'TOWER' | 'ASSET' | 'COMPLAINT' | 'WORK_ORDER' | 'TECHNICIAN';
+  label: string;
+  type: 'TOWER' | 'ASSET' | 'COMPLAINT' | 'WORK_ORDER' | 'TECHNICIAN';
+  category: string;
+  status: string;
+  tower: string;
+  details: string;
+}
+
+export interface MemoryGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationship: string;
+  label: string;
+}
+
+export interface MemoryGraphData {
+  nodes: MemoryGraphNode[];
+  edges: MemoryGraphEdge[];
+  totalNodes: number;
+  totalEdges: number;
+  generatedAt: string;
+}
+
+export interface ReliabilityRadarData {
+  overallReliabilityScore: number;
+  slaCompliancePercentage: number;
+  averageAssetHealthScore: number;
+  pmCompliancePercentage: number;
+  workOrderCompletionPercentage: number;
+  recurrenceStabilityPercentage: number;
+  towerScores: Record<string, number>;
+  radarAxes: { axis: string; score: number; assetCount: number; openComplaints: number }[];
+  evidenceCounts: Record<string, number>;
+  methodology: string;
+  sourceOfTruth: string;
+  lastCalculatedAt: string;
+}
+
+export interface RecurrenceCluster {
+  id: string;
+  clusterCode: string;
+  title: string;
+  tower: string;
+  category: string;
+  assetId?: string;
+  assetName?: string;
+  severity: string;
+  incidentCount: number;
+  timeWindowDays: number;
+  status: string;
+  rootCause?: string;
+  suggestedFix?: string;
+  capexEstimate?: string;
+  investigationNotes?: string;
+  followUpAction?: string;
+  investigatedBy?: string;
+  updatedAt?: string;
+  relatedComplaints: {
+    id: string;
+    ticketNumber: string;
+    title: string;
+    status: string;
+    severity: string;
+    proposedResolution?: string;
+    submittedAt: string;
+  }[];
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tower: string;
+  pinned: boolean;
+  authorName: string;
+  authorRole: string;
+  publishedAt: string;
+}
+
+export interface CommunityEvent {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  tower: string;
+  eventDate: string;
+  organizer: string;
+  rsvpCount: number;
+  status: string;
+}
+
+export interface CommunityDocument {
+  id: string;
+  title: string;
+  category: string;
+  description?: string;
+  fileUrl: string;
+  fileSize: string;
+  uploadedBy: string;
+  visibilityRole: string;
+  uploadedAt: string;
+}
+
+export interface AppNotification {
+  id: string;
+  userId?: string;
+  targetRole?: string;
+  title: string;
+  message: string;
+  type: string;
+  referenceId?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string;
+  actorEmail: string;
+  actorName: string;
+  actorRole: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  details?: string;
+  createdAt: string;
 }

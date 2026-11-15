@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { ApiService } from '../../services/api';
 
 interface LoginPageProps {
   onSwitchToSignup: () => void;
@@ -7,44 +8,61 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
   const { login, showToast } = useApp();
-  const [email, setEmail] = useState('suresh.patel@civicops.in');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setInfoMessage(null);
 
+    if (!email.trim() || !password) {
+      setError('Please enter both your registered email address and password.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await login(email, password);
+      const res = await login(email.trim(), password);
       showToast(`Welcome back, ${res.user.name}!`, 'success');
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password. Please verify your credentials.');
-      showToast('Authentication failed. Check your credentials.', 'error');
+      setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  const populateCredentials = (demoEmail: string, roleName: string) => {
-    setEmail(demoEmail);
-    setPassword('password123');
-    showToast(`Loaded ${roleName} credentials into form`, 'info');
+  const handleForgotPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setError(null);
+    setInfoMessage(null);
+    if (!email.trim()) {
+      setError('Enter your registered email address first to request a password reset.');
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const res = await ApiService.forgotPassword(email.trim());
+      setInfoMessage(res.message);
+      showToast(res.message, 'info');
+    } catch (err: any) {
+      setError(err.message || 'Unable to submit password reset request.');
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-      {/* Background ambient lighting */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-800 overflow-hidden relative z-10 animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
         <div className="p-8 pb-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white text-center relative">
           <div className="w-14 h-14 bg-primary/20 border border-primary/40 rounded-2xl mx-auto flex items-center justify-center mb-4 text-white shadow-inner">
             <span className="material-symbols-outlined text-[32px]">apartment</span>
@@ -53,17 +71,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
           <p className="text-xs text-slate-400 mt-1">Smart Apartment Community Operations Platform</p>
         </div>
 
-        {/* Form Body */}
         <div className="p-8 pt-6">
           <div className="mb-6 text-center">
             <h2 className="text-lg font-bold text-slate-900">Sign in to your account</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Secure JWT authentication with PostgreSQL credentials</p>
+            <p className="text-xs text-slate-500 mt-0.5">JWT authentication verified against PostgreSQL</p>
           </div>
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">error</span>
+              <span className="material-symbols-outlined text-[18px] shrink-0">error</span>
               <span>{error}</span>
+            </div>
+          )}
+
+          {infoMessage && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 text-xs rounded-xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] shrink-0">info</span>
+              <span>{infoMessage}</span>
             </div>
           )}
 
@@ -92,16 +116,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Password
                 </label>
-                <a
-                  href="#forgot"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    showToast('Password reset link sent to your registered email address.', 'info');
-                  }}
-                  className="text-xs font-semibold text-primary hover:underline"
+                <button
+                  type="button"
+                  disabled={resetLoading}
+                  onClick={handleForgotPassword}
+                  className="text-xs font-semibold text-primary hover:underline disabled:opacity-60"
                 >
-                  Forgot password?
-                </a>
+                  {resetLoading ? 'Submitting...' : 'Forgot password?'}
+                </button>
               </div>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
@@ -112,7 +134,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
                 <button
@@ -127,18 +149,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-slate-300 text-primary focus:ring-primary w-4 h-4"
-                />
-                <span className="text-slate-600 font-medium">Remember me for 30 days</span>
-              </label>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -147,7 +157,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Verifying Credentials...</span>
+                  <span>Authenticating...</span>
                 </>
               ) : (
                 <>
@@ -158,67 +168,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
             </button>
           </form>
 
-          {/* Quick populate credential shortcuts for developer testing without bypassing backend authentication */}
-          <div className="mt-5 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowDemoCredentials(!showDemoCredentials)}
-              className="w-full text-[11px] font-bold text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[15px]">key</span>
-              <span>{showDemoCredentials ? 'Hide Demo Logins' : 'Populate Demo Credentials'}</span>
-              <span className="material-symbols-outlined text-[15px]">
-                {showDemoCredentials ? 'expand_less' : 'expand_more'}
-              </span>
-            </button>
-
-            {showDemoCredentials && (
-              <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs text-slate-600 animate-in fade-in duration-150">
-                <p className="text-[10px] text-slate-400 font-semibold uppercase mb-1">
-                  Click to fill form credentials (submits real authentication request):
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => populateCredentials('vikram.admin@civicops.in', 'Vikram (Admin + Mgmt)')}
-                    className="p-1.5 text-left bg-white border border-slate-200 rounded-lg hover:border-primary text-[11px] font-semibold text-slate-700 truncate"
-                  >
-                    👑 Vikram (Multi-Role)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => populateCredentials('suresh.patel@civicops.in', 'Suresh (Management)')}
-                    className="p-1.5 text-left bg-white border border-slate-200 rounded-lg hover:border-primary text-[11px] font-semibold text-slate-700 truncate"
-                  >
-                    🏢 Suresh (Management)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => populateCredentials('rahul.sharma@greenvalley.in', 'Rahul (Resident)')}
-                    className="p-1.5 text-left bg-white border border-slate-200 rounded-lg hover:border-primary text-[11px] font-semibold text-slate-700 truncate"
-                  >
-                    🏠 Rahul (Resident B-402)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => populateCredentials('ramesh.kumar@civicops.in', 'Ramesh (Maintenance)')}
-                    className="p-1.5 text-left bg-white border border-slate-200 rounded-lg hover:border-primary text-[11px] font-semibold text-slate-700 truncate"
-                  >
-                    🔧 Ramesh (Maintenance)
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-5 text-center text-xs text-slate-500">
-            Don't have an account?{' '}
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
+            New resident at Green Valley?{' '}
             <button
               type="button"
               onClick={onSwitchToSignup}
               className="font-bold text-primary hover:underline"
             >
-              Sign up as Resident
+              Register Resident Account
             </button>
           </div>
         </div>

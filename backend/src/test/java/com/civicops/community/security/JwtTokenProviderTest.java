@@ -8,9 +8,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class JwtTokenProviderTest {
 
     private JwtTokenProvider jwtTokenProvider;
-    // 256-bit key in plain text
-    private final String secret = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
-    private final long expirationMs = 3600000; // 1 hour
+    private final String secret = "TestOnlyJwtSigningSecretKeyForCivicOpsUnitTests123456";
+    private final long expirationMs = 3600000;
 
     @BeforeEach
     void setUp() {
@@ -18,15 +17,24 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    void testGenerateTokenFromEmailAndValidate() {
+    void testRejectsMissingOrShortSecret() {
+        assertThrows(IllegalStateException.class, () -> new JwtTokenProvider("", expirationMs));
+        assertThrows(IllegalStateException.class, () -> new JwtTokenProvider("too-short", expirationMs));
+    }
+
+    @Test
+    void testGenerateTokenFromEmailIncludesJtiAndActiveRole() {
         String email = "vikram.admin@civicops.in";
 
-        String token = jwtTokenProvider.generateTokenFromEmail(email);
+        String token = jwtTokenProvider.generateTokenForUser(email, "ADMIN");
         assertNotNull(token);
         assertFalse(token.isEmpty());
 
         assertTrue(jwtTokenProvider.validateToken(token));
         assertEquals(email, jwtTokenProvider.getEmailFromJWT(token));
+        assertEquals("ADMIN", jwtTokenProvider.getActiveRole(token));
+        assertNotNull(jwtTokenProvider.getTokenId(token));
+        assertNotNull(jwtTokenProvider.getExpiration(token));
     }
 
     @Test

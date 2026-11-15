@@ -8,45 +8,49 @@ export const RaiseComplaintView: React.FC = () => {
 
   const [category, setCategory] = useState<ComplaintCategory>('PLUMBING');
   const [severity, setSeverity] = useState<ComplaintSeverity>('HIGH');
-  const [title, setTitle] = useState('Severe Low Water Pressure in Master Bathroom Riser');
-  const [description, setDescription] = useState(
-    'Since 7:00 AM today, water flow in the master bathroom shower and washbasin is down to a trickle. Similar issue was noted by neighbor in B-401.'
-  );
-  const [linkToCluster, setLinkToCluster] = useState(true);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [evidenceUrl, setEvidenceUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check if recurrence matches
+  if (!currentUser) return null;
+
+  const userTower = currentUser.tower || 'Tower B';
+  const userUnit = currentUser.unitNumber || 'B-402';
+
   const recurringMatches = complaints.filter(
-    (c) =>
-      c.tower === (currentUser.tower || 'Tower B') &&
-      c.category === category
+    (c) => c.tower === userTower && c.category === category && c.status !== 'CLOSED'
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    if (!title.trim() || !description.trim()) {
+      setError('Please enter both a subject and detailed description.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const newComplaint = await ApiService.createComplaint({
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         category,
         severity,
-        tower: currentUser.tower || 'Tower B',
-        unitNumber: currentUser.unitNumber || 'B-402',
-        residentId: currentUser.id,
-        residentName: currentUser.name,
-        residentPhone: currentUser.phone,
-        evidenceBefore: [
-          'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&auto=format&fit=crop&q=80'
-        ]
+        tower: userTower,
+        unitNumber: userUnit,
+        evidenceBefore: evidenceUrl.trim() ? [evidenceUrl.trim()] : []
       });
 
       await refreshData();
       showToast(`Complaint registered successfully as ${newComplaint.ticketNumber}!`);
       setSelectedComplaintId(newComplaint.id);
       setActiveTab('resolution-timeline');
-    } catch (err) {
-      showToast('Failed to submit complaint', 'error');
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to submit complaint';
+      setError(msg);
+      showToast(msg, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -64,31 +68,41 @@ export const RaiseComplaintView: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-headline font-bold text-lg text-slate-900">
-                  Flat {currentUser.unitNumber || 'B-402'}
+                  Flat {userUnit}
                 </span>
                 <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase tracking-wide">
-                  {currentUser.tower || 'Tower B'} • West
+                  {userTower}
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Resident: {currentUser.name} ({currentUser.designation || 'Primary Owner'})
+                Resident: {currentUser.name} ({currentUser.designation || 'Resident'})
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold shrink-0">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-            Elevated Triage
-          </span>
+          {recurringMatches.length >= 2 && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold shrink-0">
+              <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+              Recurring Zone
+            </span>
+          )}
         </div>
 
-        {/* Live Micro-telemetry Hotspot ticker */}
+        {/* Live Incident Pattern Indicator from Backend Complaints */}
         <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-          <span className="material-symbols-outlined text-[18px] text-red-600 shrink-0">warning</span>
-          <span className="text-slate-700 truncate">
-            <strong>Shaft #4 Wet Riser Hotspot:</strong> {recurringMatches.length || 3} previous incidents logged in rolling window
+          <span className="material-symbols-outlined text-[18px] text-primary shrink-0">hub</span>
+          <span className="text-slate-700">
+            <strong>Live Community History ({userTower} • {category}):</strong>{' '}
+            {recurringMatches.length} active ticket(s) logged in this category. Backend workflow auto-checks recurrence on submission.
           </span>
         </div>
       </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">error</span>
+          <span>{error}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Category Selector */}
@@ -97,7 +111,7 @@ export const RaiseComplaintView: React.FC = () => {
             <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
               Service Category
             </label>
-            <span className="text-xs text-primary font-semibold">5 Categories Available</span>
+            <span className="text-xs text-primary font-semibold">7 Categories Supported</span>
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-1">
@@ -106,6 +120,8 @@ export const RaiseComplaintView: React.FC = () => {
               { id: 'ELECTRICAL', label: 'Electrical & Power', icon: 'bolt' },
               { id: 'ELEVATOR', label: 'Elevators', icon: 'elevator' },
               { id: 'HVAC', label: 'HVAC & Exhaust', icon: 'mode_fan' },
+              { id: 'CIVIL', label: 'Civil & Masonry', icon: 'foundation' },
+              { id: 'SECURITY', label: 'Security Systems', icon: 'shield' },
               { id: 'COMMON_AREA', label: 'Common Area', icon: 'deck' }
             ].map((cat) => (
               <button
@@ -124,80 +140,6 @@ export const RaiseComplaintView: React.FC = () => {
             ))}
           </div>
         </div>
-
-        {/* Smart Recurrence & Community Memory Advisory Card matching Stitch Screen 3 */}
-        {category === 'PLUMBING' && (
-          <div className="bg-gradient-to-br from-blue-50/80 via-white to-slate-50 rounded-2xl p-5 border-2 border-primary/20 shadow-sm relative overflow-hidden">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[24px]">hub</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-headline font-bold text-slate-900 text-base">
-                    Correlated Duct Lineage Detected
-                  </span>
-                  <span className="px-2 py-0.5 bg-blue-100 text-primary text-[10px] rounded-full font-bold">
-                    Memory Graph #RC-2024-09
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Our predictive mesh links this duct to <strong className="text-slate-900">Shaft #4 CPVC Vertical Riser (#AST-CPVC-04)</strong>. Two historic pressure anomalies occurred on your line recently.
-                </p>
-
-                {/* SVG Surge Micro-Telemetry Wave from Stitch design */}
-                <div className="bg-white rounded-xl p-3 mt-3 border border-slate-200">
-                  <div className="flex items-center justify-between mb-1.5 text-xs">
-                    <span className="text-slate-500 font-medium">Upstream Pressure Telemetry (Booster P-02)</span>
-                    <span className="font-bold text-red-600 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                      <span>Micro-fissure Risk</span>
-                    </span>
-                  </div>
-                  <svg className="w-full h-8 text-primary" fill="none" preserveAspectRatio="none" viewBox="0 0 300 32">
-                    <path
-                      d="M0 20 Q 25 20, 50 18 T 100 22 T 150 16 T 200 25 T 230 4 T 240 28 T 260 8 T 280 20 L 300 18"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.5"
-                    />
-                    <path
-                      d="M0 20 Q 25 20, 50 18 T 100 22 T 150 16 T 200 25 T 230 4 T 240 28 T 260 8 T 280 20 L 300 18 L 300 32 L 0 32 Z"
-                      fill="currentColor"
-                      fillOpacity="0.08"
-                    />
-                    <circle className="fill-red-600 animate-ping" cx="230" cy="4" r="3.5" />
-                    <circle className="fill-red-600" cx="230" cy="4" r="3" />
-                  </svg>
-                  <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                    <span>06:00 AM (Base 3.2 bar)</span>
-                    <span className="text-red-600 font-bold">07:15 AM (Spike 5.8 bar)</span>
-                    <span>Now (Residual 0.6 bar)</span>
-                  </div>
-                </div>
-
-                {/* Auto-Cluster Link Toggle */}
-                <label className="mt-3 flex items-start gap-3 p-3 rounded-xl bg-slate-100/80 cursor-pointer select-none border border-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={linkToCluster}
-                    onChange={(e) => setLinkToCluster(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded text-primary accent-primary"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 block leading-tight">
-                      Link to Recurring Shaft #4 Incident Cluster
-                    </span>
-                    <span className="text-[11px] text-slate-500 block mt-0.5">
-                      Auto-associates ticket with Cluster #RC-2024-09 for accelerated MEP lead dispatch and bypasses preliminary checks.
-                    </span>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Severity Selector */}
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-2">
@@ -237,6 +179,7 @@ export const RaiseComplaintView: React.FC = () => {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Low water pressure in master bathroom riser"
               className="w-full h-11 px-3 text-sm rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-medium"
             />
           </div>
@@ -250,25 +193,22 @@ export const RaiseComplaintView: React.FC = () => {
               required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe when the issue began, affected fixtures, and any unusual sounds or leaks..."
               className="w-full p-3 text-sm rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none leading-relaxed"
             />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Inspection Photo Proof (Before Repair)
+              Evidence Image URL (Optional)
             </label>
-            <div className="flex items-center gap-3">
-              <img
-                src="https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=600&auto=format&fit=crop&q=80"
-                alt="Fault preview"
-                className="w-20 h-20 rounded-xl object-cover border border-slate-200"
-              />
-              <div className="p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl flex-1 text-center text-xs text-slate-500">
-                <span className="material-symbols-outlined text-[20px] text-primary block">photo_camera</span>
-                <span>Photo attached: Riser pressure gauge reading 0.6 bar</span>
-              </div>
-            </div>
+            <input
+              type="url"
+              value={evidenceUrl}
+              onChange={(e) => setEvidenceUrl(e.target.value)}
+              placeholder="https://... (optional photo link of fault before repair)"
+              className="w-full h-10 px-3 text-xs rounded-lg border border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+            />
           </div>
         </div>
 
@@ -284,7 +224,7 @@ export const RaiseComplaintView: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2.5 rounded-xl bg-primary hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2"
+            className="px-6 py-2.5 rounded-xl bg-primary hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 disabled:opacity-60"
           >
             <span className="material-symbols-outlined text-[18px]">send</span>
             <span>{isSubmitting ? 'Registering...' : 'Submit Service Ticket (Step 1)'}</span>
@@ -294,3 +234,4 @@ export const RaiseComplaintView: React.FC = () => {
     </div>
   );
 };
+

@@ -1,26 +1,28 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
-  User,
-  UserRole,
-  Complaint,
-  WorkOrder,
+  AppNotification,
   Asset,
+  Complaint,
+  IncidentAlert,
+  Parcel,
+  PreventiveSchedule,
   SparePart,
   SpareRequisition,
-  VisitorPass,
-  Parcel,
-  IncidentAlert,
   Unit,
-  PreventiveSchedule
+  User,
+  UserRole,
+  VisitorPass,
+  WorkOrder
 } from '../types';
-import { ApiService, db, getAuthToken, setAuthToken } from '../services/api';
-import { DEMO_USERS } from '../data/initialData';
+import { ApiService, getAuthToken, registerUnauthorizedHandler, setAuthToken } from '../services/api';
+import { getDefaultTabForRole, isTabAllowedForRole } from '../config/rbac';
 
 interface AppContextType {
-  currentUser: User;
-  setCurrentUser: (user: User) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (auth: boolean) => void;
+  authChecking: boolean;
   isRoleSelectionPending: boolean;
   setIsRoleSelectionPending: (pending: boolean) => void;
   authorizedRoles: UserRole[];
@@ -29,7 +31,7 @@ interface AppContextType {
   setRole: (role: UserRole) => void;
   switchRole: (role: UserRole) => Promise<void>;
   selectAuthorizedRole: (role: UserRole) => Promise<void>;
-  login: (email: string, password?: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
 
   selectedTower: string;
@@ -47,6 +49,8 @@ interface AppContextType {
   incidents: IncidentAlert[];
   units: Unit[];
   preventiveSchedules: PreventiveSchedule[];
+  notifications: AppNotification[];
+  unreadNotificationsCount: number;
 
   selectedComplaintId: string | null;
   setSelectedComplaintId: (id: string | null) => void;
@@ -62,64 +66,26 @@ interface AppContextType {
   isFastCheckInOpen: boolean;
   setIsFastCheckInOpen: (open: boolean) => void;
 
+  isLoadingData: boolean;
+  dataError: string | null;
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
 
   refreshData: () => Promise<void>;
-  resetDatabase: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Session authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return sessionStorage.getItem('civicops_token') !== null;
-  });
-
-  const [authorizedRoles, setAuthorizedRoles] = useState<UserRole[]>(() => {
-    try {
-      const stored = sessionStorage.getItem('civicops_user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u.authorizedRoles && u.authorizedRoles.length > 0) return u.authorizedRoles;
-        if (u.role) return [u.role];
-      }
-    } catch (e) {
-      // ignore
-    }
-    return ['MANAGEMENT'];
-  });
-
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authChecking, setAuthChecking] = useState<boolean>(() => Boolean(getAuthToken()));
+  const [authorizedRoles, setAuthorizedRoles] = useState<UserRole[]>([]);
   const [isRoleSelectionPending, setIsRoleSelectionPending] = useState<boolean>(false);
-
-  const [role, setRole] = useState<UserRole>(() => {
-    try {
-      const stored = sessionStorage.getItem('civicops_user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u.role) return u.role;
-      }
-    } catch (e) {
-      // ignore
-    }
-    return 'MANAGEMENT';
-  });
-
-  const [currentUser, setCurrentUser] = useState<User>(() => {
-    try {
-      const stored = sessionStorage.getItem('civicops_user');
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      // ignore
-    }
-    return DEMO_USERS[1]; // Fallback if needed
-  });
+  const [role, setRole] = useState<UserRole>('RESIDENT');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const [selectedTower, setSelectedTower] = useState<string>('All Towers');
-  const [activeTab, setActiveTab] = useState<string>('management-overview');
+  const [activeTab, setActiveTabState] = useState<string>('resident-home');
 
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
@@ -131,86 +97,197 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [incidents, setIncidents] = useState<IncidentAlert[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [preventiveSchedules, setPreventiveSchedules] = useState<PreventiveSchedule[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>('cmp-2024-089');
-  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<string | null>('wo-2024-118');
+  const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
+  const [selectedWorkOrderId, setSelectedWorkOrderId] = useState<string | null>(null);
 
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
   const [isPreApproveModalOpen, setIsPreApproveModalOpen] = useState(false);
   const [isRoleSwitcherOpen, setIsRoleSwitcherOpen] = useState(false);
   const [isFastCheckInOpen, setIsFastCheckInOpen] = useState(false);
 
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
     setTimeout(() => {
-      setToast(null);
-    }, 4000);
-  };
+      setToast((prev) => (prev?.message === message ? null : prev));
+    }, 4500);
+  }, []);
 
-  const setDefaultTabForRole = (newRole: UserRole) => {
-    if (newRole === 'RESIDENT') {
-      setActiveTab('resident-home');
-    } else if (newRole === 'MAINTENANCE') {
-      setActiveTab('assigned-work-orders');
-    } else if (newRole === 'SECURITY') {
-      setActiveTab('gate-console');
-    } else if (newRole === 'MANAGEMENT') {
-      setActiveTab('management-overview');
-    } else if (newRole === 'ADMIN') {
-      setActiveTab('settings-roles');
-    }
-  };
+  const setActiveTab = useCallback(
+    (tab: string) => {
+      if (isTabAllowedForRole(role, tab)) {
+        setActiveTabState(tab);
+      } else {
+        setActiveTabState(getDefaultTabForRole(role));
+        showToast(`Access to "${tab}" is not permitted for role ${role}.`, 'error');
+      }
+    },
+    [role, showToast]
+  );
 
-  const refreshData = async () => {
-    try {
-      const [
-        fetchedComplaints,
-        fetchedWorkOrders,
-        fetchedAssets,
-        fetchedSpares,
-        fetchedReqs,
-        fetchedPasses,
-        fetchedParcels,
-        fetchedIncidents,
-        fetchedUnits,
-        fetchedSchedules
-      ] = await Promise.all([
-        ApiService.getComplaints(),
-        ApiService.getWorkOrders(),
-        ApiService.getAssets(),
-        ApiService.getSpares(),
-        ApiService.getRequisitions(),
-        ApiService.getVisitorPasses(),
-        ApiService.getParcels(),
-        ApiService.getIncidents(),
-        ApiService.getUnits(),
-        ApiService.getPreventiveSchedules()
-      ]);
-
-      setComplaints(fetchedComplaints);
-      setWorkOrders(fetchedWorkOrders);
-      setAssets(fetchedAssets);
-      setSpares(fetchedSpares);
-      setRequisitions(fetchedReqs);
-      setVisitorPasses(fetchedPasses);
-      setParcels(fetchedParcels);
-      setIncidents(fetchedIncidents);
-      setUnits(fetchedUnits);
-      setPreventiveSchedules(fetchedSchedules);
-    } catch (e) {
-      console.error('Failed to refresh data', e);
-    }
-  };
+  const clearSessionState = useCallback(() => {
+    setAuthToken(null);
+    sessionStorage.removeItem('civicops_user');
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    setIsRoleSelectionPending(false);
+    setAuthorizedRoles([]);
+    setComplaints([]);
+    setWorkOrders([]);
+    setAssets([]);
+    setSpares([]);
+    setRequisitions([]);
+    setVisitorPasses([]);
+    setParcels([]);
+    setIncidents([]);
+    setUnits([]);
+    setPreventiveSchedules([]);
+    setNotifications([]);
+  }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    registerUnauthorizedHandler(() => {
+      clearSessionState();
+      showToast('Your session expired or was revoked. Please sign in again.', 'error');
+    });
+    return () => registerUnauthorizedHandler(null);
+  }, [clearSessionState, showToast]);
+
+  // Verify existing JWT against /auth/me on application startup
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      setAuthChecking(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const verifiedUser = await ApiService.getCurrentUser();
+        if (cancelled) return;
+        const activeRole = verifiedUser.activeRole || verifiedUser.role;
+        const roles = verifiedUser.authorizedRoles && verifiedUser.authorizedRoles.length > 0
+          ? verifiedUser.authorizedRoles
+          : [activeRole];
+        setCurrentUser(verifiedUser);
+        sessionStorage.setItem('civicops_user', JSON.stringify(verifiedUser));
+        setAuthorizedRoles(roles);
+        setRole(activeRole);
+        setActiveTabState(getDefaultTabForRole(activeRole));
+        setIsAuthenticated(true);
+      } catch {
+        if (!cancelled) {
+          clearSessionState();
+        }
+      } finally {
+        if (!cancelled) {
+          setAuthChecking(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [clearSessionState]);
+
+  const refreshData = useCallback(async () => {
+    if (!isAuthenticated || !currentUser) return;
+    setIsLoadingData(true);
+    setDataError(null);
+
+    const activeRole = role;
+    const canSeeMaintenance = activeRole === 'MAINTENANCE' || activeRole === 'MANAGEMENT' || activeRole === 'ADMIN';
+    const canSeeVisitors = activeRole === 'RESIDENT' || activeRole === 'SECURITY' || activeRole === 'MANAGEMENT' || activeRole === 'ADMIN';
+    const canSeeParcels = activeRole === 'RESIDENT' || activeRole === 'SECURITY' || activeRole === 'MANAGEMENT' || activeRole === 'ADMIN';
+    const canSeeUnits = true; // Backend scopes RESIDENT to their own unit
+    const canSeeComplaints = activeRole !== 'SECURITY';
+
+    try {
+      const [
+        complaintsRes,
+        workOrdersRes,
+        assetsRes,
+        sparesRes,
+        reqsRes,
+        passesRes,
+        parcelsRes,
+        incidentsRes,
+        unitsRes,
+        schedulesRes,
+        notifsRes
+      ] = await Promise.allSettled([
+        canSeeComplaints ? ApiService.getComplaints() : Promise.resolve([]),
+        canSeeMaintenance ? ApiService.getWorkOrders() : Promise.resolve([]),
+        canSeeMaintenance ? ApiService.getAssets() : Promise.resolve([]),
+        canSeeMaintenance ? ApiService.getSpares() : Promise.resolve([]),
+        canSeeMaintenance ? ApiService.getRequisitions() : Promise.resolve([]),
+        canSeeVisitors ? ApiService.getVisitorPasses() : Promise.resolve([]),
+        canSeeParcels ? ApiService.getParcels() : Promise.resolve([]),
+        ApiService.getIncidents(),
+        canSeeUnits ? ApiService.getUnits() : Promise.resolve([]),
+        canSeeMaintenance ? ApiService.getPreventiveSchedules() : Promise.resolve([]),
+        ApiService.getNotifications()
+      ]);
+
+      if (complaintsRes.status === 'fulfilled') {
+        setComplaints(complaintsRes.value);
+        setSelectedComplaintId((prev) =>
+          prev && complaintsRes.value.some((c) => c.id === prev) ? prev : complaintsRes.value[0]?.id || null
+        );
+      }
+      if (workOrdersRes.status === 'fulfilled') {
+        setWorkOrders(workOrdersRes.value);
+        setSelectedWorkOrderId((prev) =>
+          prev && workOrdersRes.value.some((w) => w.id === prev) ? prev : workOrdersRes.value[0]?.id || null
+        );
+      }
+      if (assetsRes.status === 'fulfilled') setAssets(assetsRes.value);
+      if (sparesRes.status === 'fulfilled') setSpares(sparesRes.value);
+      if (reqsRes.status === 'fulfilled') setRequisitions(reqsRes.value);
+      if (passesRes.status === 'fulfilled') setVisitorPasses(passesRes.value);
+      if (parcelsRes.status === 'fulfilled') setParcels(parcelsRes.value);
+      if (incidentsRes.status === 'fulfilled') setIncidents(incidentsRes.value);
+      if (unitsRes.status === 'fulfilled') setUnits(unitsRes.value);
+      if (schedulesRes.status === 'fulfilled') setPreventiveSchedules(schedulesRes.value);
+      if (notifsRes.status === 'fulfilled') setNotifications(notifsRes.value);
+
+      const firstFailure = [
+        complaintsRes,
+        workOrdersRes,
+        assetsRes,
+        sparesRes,
+        reqsRes,
+        passesRes,
+        parcelsRes,
+        incidentsRes,
+        unitsRes,
+        schedulesRes
+      ].find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined;
+
+      if (firstFailure) {
+        setDataError(firstFailure.reason?.message || 'Some data feeds failed to load.');
+      }
+    } catch (err: any) {
+      setDataError(err.message || 'Failed to synchronize data with backend.');
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [isAuthenticated, currentUser, role]);
+
+  useEffect(() => {
+    if (isAuthenticated && !isRoleSelectionPending) {
       refreshData();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isRoleSelectionPending, role, refreshData]);
 
-  const login = async (email: string, password?: string) => {
+  const login = async (email: string, password: string) => {
     const res = await ApiService.login(email, password);
     setCurrentUser(res.user);
     sessionStorage.setItem('civicops_user', JSON.stringify(res.user));
@@ -223,53 +300,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsRoleSelectionPending(false);
       const assignedRole = res.authorizedRoles?.[0] || res.user.role || 'RESIDENT';
       setRole(assignedRole);
-      setDefaultTabForRole(assignedRole);
+      setActiveTabState(getDefaultTabForRole(assignedRole));
     }
     return res;
   };
 
   const selectAuthorizedRole = async (selectedRole: UserRole) => {
+    const res = await ApiService.switchRole(selectedRole);
+    setCurrentUser(res.user);
+    sessionStorage.setItem('civicops_user', JSON.stringify(res.user));
     setRole(selectedRole);
     setIsRoleSelectionPending(false);
-    try {
-      await ApiService.switchRole(selectedRole);
-    } catch (e) {
-      // ignore
-    }
-    setDefaultTabForRole(selectedRole);
-    showToast(`Active perspective switched to ${selectedRole}`, 'info');
+    setActiveTabState(getDefaultTabForRole(selectedRole));
+    showToast(`Active perspective set to ${selectedRole}`, 'info');
   };
 
   const switchRole = async (newRole: UserRole) => {
+    const res = await ApiService.switchRole(newRole);
+    setCurrentUser(res.user);
+    sessionStorage.setItem('civicops_user', JSON.stringify(res.user));
     setRole(newRole);
-    try {
-      await ApiService.switchRole(newRole);
-    } catch (e) {
-      // ignore
-    }
-    setDefaultTabForRole(newRole);
+    setActiveTabState(getDefaultTabForRole(newRole));
     showToast(`Active operating role switched to ${newRole}`, 'info');
   };
 
   const logout = async () => {
     try {
       await ApiService.logout();
-    } catch (e) {
-      // ignore
+    } finally {
+      clearSessionState();
+      showToast('Signed out of CivicOps session.', 'info');
     }
-    sessionStorage.removeItem('civicops_token');
-    sessionStorage.removeItem('civicops_user');
-    setIsAuthenticated(false);
-    setIsRoleSelectionPending(false);
-    setAuthorizedRoles([]);
-    showToast('Signed out of CivicOps session.', 'info');
   };
 
-  const resetDatabase = () => {
-    db.resetToDefaults();
-    refreshData();
-    showToast('Platform database reset to initial demo seeds', 'info');
-  };
+  const unreadNotificationsCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <AppContext.Provider
@@ -278,6 +342,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser,
         isAuthenticated,
         setIsAuthenticated,
+        authChecking,
         isRoleSelectionPending,
         setIsRoleSelectionPending,
         authorizedRoles,
@@ -302,6 +367,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         incidents,
         units,
         preventiveSchedules,
+        notifications,
+        unreadNotificationsCount,
         selectedComplaintId,
         setSelectedComplaintId,
         selectedWorkOrderId,
@@ -314,10 +381,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsRoleSwitcherOpen,
         isFastCheckInOpen,
         setIsFastCheckInOpen,
+        isLoadingData,
+        dataError,
         toast,
         showToast,
-        refreshData,
-        resetDatabase
+        refreshData
       }}
     >
       {children}

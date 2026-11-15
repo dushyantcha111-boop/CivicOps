@@ -16,10 +16,12 @@ export const ResidentResolutionSignOffView: React.FC = () => {
     complaints.find((c) => c.id === selectedComplaintId) || complaints[0];
 
   const [rating, setRating] = useState(5);
-  const [feedback, setFeedback] = useState('Water pressure is fully restored. Technician was professional and clean.');
+  const [feedback, setFeedback] = useState('');
   const [disputeReason, setDisputeReason] = useState('');
   const [isDisputing, setIsDisputing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!currentUser) return null;
 
   if (!complaint) {
     return <div className="p-8 text-center text-slate-500">No ticket selected.</div>;
@@ -32,14 +34,14 @@ export const ResidentResolutionSignOffView: React.FC = () => {
         complaint.id,
         currentUser.name,
         rating,
-        feedback,
-        `DIGITAL-SIG-SHA256-${Date.now()}`
+        feedback.trim(),
+        `DIGITAL-SIG-${currentUser.id}-${Date.now()}`
       );
       await refreshData();
-      showToast('Resolution confirmed & digitally signed off! Ticket closed successfully (Step 8 & 9 completed).');
+      showToast('Resolution confirmed & digitally signed off! Ticket closed (Steps 8 & 9 completed).');
       setActiveTab('resolution-timeline');
-    } catch (e) {
-      showToast('Sign-off failed', 'error');
+    } catch (e: any) {
+      showToast(e?.message || 'Sign-off failed', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -53,12 +55,12 @@ export const ResidentResolutionSignOffView: React.FC = () => {
     }
     setIsSubmitting(true);
     try {
-      await ApiService.residentDisputeResolution(complaint.id, currentUser.name, disputeReason);
+      await ApiService.residentDisputeResolution(complaint.id, currentUser.name, disputeReason.trim());
       await refreshData();
       showToast('Resolution dispute recorded! Ticket re-escalated to Estate Management.', 'error');
       setActiveTab('resolution-timeline');
-    } catch (e) {
-      showToast('Dispute failed', 'error');
+    } catch (e: any) {
+      showToast(e?.message || 'Dispute failed', 'error');
     } finally {
       setIsSubmitting(false);
     }

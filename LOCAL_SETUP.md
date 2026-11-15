@@ -46,11 +46,13 @@ We provide automated PowerShell scripts in the `scripts/` folder.
 If you prefer setting up manually:
 
 ### Step 1: Configure Environment Variables
-Copy `.env.example` to `.env` in the root folder:
+Copy both `.env.example` templates in PowerShell:
 ```powershell
 Copy-Item .env.example .env
+Copy-Item backend\.env.example backend\.env
 ```
-Ensure `VITE_API_BASE_URL=http://localhost:8080/api/v1`.
+Root `.env` uses `VITE_API_BASE_URL=/api/v1` (proxied automatically by Vite to `http://localhost:8080`).
+Edit `backend\.env` if needed to set `JWT_SECRET`, `SQL_HOST`, `SQL_DB_NAME`, `SQL_USER`, and `SQL_PASSWORD`.
 
 ### Step 2: Install Frontend Dependencies
 ```powershell
@@ -69,14 +71,14 @@ cd ..
 cd backend
 mvn spring-boot:run
 ```
-*(The backend will start on port `8080` with Flyway migrations automatically executed against PostgreSQL).*
+*(The backend starts on port `8080` and runs Flyway migrations `V1`–`V4` automatically against PostgreSQL).*
 
 ### Step 5: Start the React Frontend
 Open a separate PowerShell terminal in the project root:
 ```powershell
 npm run dev
 ```
-*(Vite will start the frontend development server on `http://localhost:5173`).*
+*(Vite starts the frontend development server on `http://localhost:3000` and proxies `/api` to `http://localhost:8080`).*
 
 ---
 
@@ -93,10 +95,12 @@ npm run dev
 
 ## 6. Accessing the Application
 
-- **Frontend App**: `http://localhost:5173`
+- **Frontend App**: `http://localhost:3000`
 - **Backend API**: `http://localhost:8080/api/v1`
-- **Demo Accounts**:
-  - **Admin / Multi-Role**: `vikram.admin@civicops.in` (Password: `password123`)
-  - **Management**: `suresh.patel@civicops.in` (Password: `password123`)
-  - **Resident (Tower B-402)**: `rahul.sharma@greenvalley.in` (Password: `password123`)
-  - **Maintenance**: `ramesh.kumar@civicops.in` (Password: `password123`)
+- **Backend Health**: `http://localhost:8080/actuator/health`
+- **Seeded Accounts** (if V2 seed migration applied; otherwise register via Signup or admin console):
+  - **Admin / Multi-Role**: `vikram.admin@civicops.in`
+  - **Management**: `suresh.patel@civicops.in`
+  - **Resident (Tower B-402)**: `rahul.sharma@greenvalley.in`
+  - **Maintenance**: `ramesh.kumar@civicops.in`
+  - **Security**: `sanjay.guard@civicops.in`
