@@ -3,6 +3,7 @@ package com.civicops.community.controller;
 import com.civicops.community.model.*;
 import com.civicops.community.repository.*;
 import com.civicops.community.service.AuditService;
+import com.civicops.community.service.MemoryGraphService;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -29,198 +30,77 @@ public class IntelligenceController {
     private final UnitRepository unitRepository;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final MemoryGraphService memoryGraphService;
 
     @GetMapping("/memory-graph")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
+    public ResponseEntity<MemoryGraphService.MemoryGraphResponse> getMemoryGraph(
+            @RequestParam(required = false) String tower,
+            @RequestParam(required = false) String nodeType,
+            @RequestParam(required = false) String relationship,
+            @RequestParam(required = false) String q
+    ) {
+        User actor = auditService.requireCurrentUser();
+        return ResponseEntity.ok(memoryGraphService.buildGraph(actor, tower, nodeType, relationship, q));
+    }
+
+    @GetMapping("/memory-graph/nodes/{nodeId}")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
+    public ResponseEntity<MemoryGraphService.MemoryGraphNodeDetailResponse> getMemoryGraphNode(
+            @PathVariable String nodeId
+    ) {
+        User actor = auditService.requireCurrentUser();
+        return ResponseEntity.ok(memoryGraphService.getNodeDetails(actor, nodeId));
+    }
+
+    @GetMapping("/memory-graph/nodes/{nodeId}/expand")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
+    public ResponseEntity<MemoryGraphService.MemoryGraphExpandResponse> expandMemoryGraphNode(
+            @PathVariable String nodeId
+    ) {
+        User actor = auditService.requireCurrentUser();
+        return ResponseEntity.ok(memoryGraphService.expandNode(actor, nodeId));
+    }
+
+    @GetMapping("/memory-graph/search")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
+    public ResponseEntity<MemoryGraphService.MemoryGraphResponse> searchMemoryGraph(
+            @RequestParam(defaultValue = "") String q
+    ) {
+        User actor = auditService.requireCurrentUser();
+        return ResponseEntity.ok(memoryGraphService.searchNodes(actor, q));
+    }
+
+    @GetMapping("/memory-graph/path")
+    @PreAuthorize("hasAnyRole('RESIDENT', 'MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
+    public ResponseEntity<MemoryGraphService.MemoryGraphPathResponse> findMemoryGraphPath(
+            @RequestParam String from,
+            @RequestParam String to
+    ) {
+        User actor = auditService.requireCurrentUser();
+        return ResponseEntity.ok(memoryGraphService.findShortestPath(actor, from, to));
+    }
+
+    @PutMapping("/memory-graph/layout")
     @PreAuthorize("hasAnyRole('MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
-    public ResponseEntity<MemoryGraphResponse> getMemoryGraph() {
-        List<Complaint> complaints = complaintRepository.findAll();
-        List<Asset> assets = assetRepository.findAll();
-        List<WorkOrder> workOrders = workOrderRepository.findAll();
+    public ResponseEntity<Map<String, Object>> saveMemoryGraphLayout(
+            @RequestBody List<MemoryGraphService.NodeLayoutInput> positions
+    ) {
+        User actor = auditService.requireCurrentUser();
+        List<MemoryGraphNodeState> saved = memoryGraphService.saveLayout(actor, positions);
+        auditService.logAction(actor, "SAVE_GRAPH_LAYOUT", "MEMORY_GRAPH", "layout",
+                "Persisted " + saved.size() + " pinned graph node coordinates");
+        return ResponseEntity.ok(Map.of("savedCount", saved.size(), "nodes", saved));
+    }
 
-        List<GraphNode> nodes = new ArrayList<>();
-        List<GraphEdge> edges = new ArrayList<>();
-        Set<String> nodeIds = new HashSet<>();
-        Set<String> edgeIds = new HashSet<>();
-
-        // 1. Tower Nodes
-        Set<String> towers = new LinkedHashSet<>();
-        assets.forEach(a -> towers.add(a.getTower()));
-        complaints.forEach(c -> towers.add(c.getTower()));
-        for (String tower : towers) {
-            String tId = "tower-" + tower.toLowerCase().replaceAll("[^a-z0-9]+", "-");
-            if (nodeIds.add(tId)) {
-                long openIssues = complaints.stream()
-                        .filter(c -> tower.equalsIgnoreCase(c.getTower()))
-                        .filter(c -> c.getStatus() != Complaint.ComplaintStatus.CLOSED && c.getStatus() != Complaint.ComplaintStatus.RESIDENT_CONFIRMED)
-                        .count();
-                long assetCount = assets.stream().filter(a -> tower.equalsIgnoreCase(a.getTower())).count();
-                nodes.add(GraphNode.builder()
-                        .id(tId)
-                        .sourceId(tower)
-                        .sourceType("TOWER")
-                        .label(tower)
-                        .type("TOWER")
-                        .category("INFRASTRUCTURE")
-                        .status(openIssues > 0 ? "ATTENTION" : "HEALTHY")
-                        .tower(tower)
-                        .details(assetCount + " assets • " + openIssues + " active issue(s)")
-                        .build());
-            }
-        }
-
-        // 2. Asset Nodes + Asset->Tower edges
-        for (Asset a : assets) {
-            String nodeId = "asset-" + a.getId();
-            if (nodeIds.add(nodeId)) {
-                nodes.add(GraphNode.builder()
-                        .id(nodeId)
-                        .sourceId(a.getId())
-                        .sourceType("ASSET")
-                        .label(a.getName())
-                        .type("ASSET")
-                        .category(a.getCategory())
-                        .status(a.getStatus())
-                        .tower(a.getTower())
-                        .details(String.format("Health: %d/100 • MTBF: %dh • Code: %s", a.getHealthScore(), a.getMtbfHours(), a.getAssetCode()))
-                        .build());
-            }
-            String tId = "tower-" + a.getTower().toLowerCase().replaceAll("[^a-z0-9]+", "-");
-            String eId = "edge-" + nodeId + "-" + tId;
-            if (nodeIds.contains(tId) && edgeIds.add(eId)) {
-                edges.add(GraphEdge.builder()
-                        .id(eId)
-                        .source(nodeId)
-                        .target(tId)
-                        .relationship("LOCATED_IN")
-                        .label("Installed in " + a.getTower())
-                        .build());
-            }
-        }
-
-        // 3. Complaint Nodes + Complaint->Asset edges
-        for (Complaint c : complaints) {
-            String compNodeId = "comp-" + c.getId();
-            if (nodeIds.add(compNodeId)) {
-                nodes.add(GraphNode.builder()
-                        .id(compNodeId)
-                        .sourceId(c.getId())
-                        .sourceType("COMPLAINT")
-                        .label(c.getTicketNumber() + ": " + c.getTitle())
-                        .type("COMPLAINT")
-                        .category(c.getCategory().name())
-                        .status(c.getStatus().name())
-                        .tower(c.getTower())
-                        .details(String.format("Unit %s • Severity: %s • Recurrences: %d", c.getUnitNumber(), c.getSeverity(), c.getRecurringCount()))
-                        .build());
-            }
-
-            Asset matchedAsset = null;
-            if (c.getAssetId() != null) {
-                matchedAsset = assets.stream().filter(a -> a.getId().equals(c.getAssetId())).findFirst().orElse(null);
-            }
-            if (matchedAsset == null) {
-                matchedAsset = assets.stream()
-                        .filter(a -> a.getTower().equalsIgnoreCase(c.getTower())
-                                && a.getCategory().equalsIgnoreCase(c.getCategory().name()))
-                        .findFirst()
-                        .or(() -> assets.stream().filter(a -> a.getTower().equalsIgnoreCase(c.getTower())).findFirst())
-                        .orElse(null);
-            }
-            if (matchedAsset != null) {
-                String eId = "edge-" + compNodeId + "-asset-" + matchedAsset.getId();
-                if (edgeIds.add(eId)) {
-                    edges.add(GraphEdge.builder()
-                            .id(eId)
-                            .source(compNodeId)
-                            .target("asset-" + matchedAsset.getId())
-                            .relationship("AFFECTS_ASSET")
-                            .label("Affects " + matchedAsset.getName())
-                            .build());
-                }
-            }
-        }
-
-        // 4. WorkOrder + Technician Nodes & Edges
-        for (WorkOrder wo : workOrders) {
-            String woNodeId = "wo-" + wo.getId();
-            if (nodeIds.add(woNodeId)) {
-                nodes.add(GraphNode.builder()
-                        .id(woNodeId)
-                        .sourceId(wo.getId())
-                        .sourceType("WORK_ORDER")
-                        .label(wo.getWoNumber() + ": " + wo.getTitle())
-                        .type("WORK_ORDER")
-                        .category(wo.getType().name())
-                        .status(wo.getStatus().name())
-                        .tower(wo.getTower())
-                        .details("Assigned: " + wo.getTechnicianName() + " • Status: " + wo.getStatus())
-                        .build());
-            }
-
-            if (wo.getComplaintId() != null && nodeIds.contains("comp-" + wo.getComplaintId())) {
-                String eId = "edge-" + woNodeId + "-comp-" + wo.getComplaintId();
-                if (edgeIds.add(eId)) {
-                    edges.add(GraphEdge.builder()
-                            .id(eId)
-                            .source(woNodeId)
-                            .target("comp-" + wo.getComplaintId())
-                            .relationship("RESOLVES_ISSUE")
-                            .label("Dispatched for " + wo.getWoNumber())
-                            .build());
-                }
-            }
-
-            if (wo.getAssetId() != null && nodeIds.contains("asset-" + wo.getAssetId())) {
-                String eId = "edge-" + woNodeId + "-asset-" + wo.getAssetId();
-                if (edgeIds.add(eId)) {
-                    edges.add(GraphEdge.builder()
-                            .id(eId)
-                            .source(woNodeId)
-                            .target("asset-" + wo.getAssetId())
-                            .relationship("SERVICES_ASSET")
-                            .label("Services " + (wo.getAssetName() != null ? wo.getAssetName() : wo.getAssetId()))
-                            .build());
-                }
-            }
-
-            if (wo.getTechnicianId() != null) {
-                String techNodeId = "tech-" + wo.getTechnicianId();
-                if (nodeIds.add(techNodeId)) {
-                    long activeJobs = workOrders.stream()
-                            .filter(w -> wo.getTechnicianId().equals(w.getTechnicianId()) && w.getStatus() != WorkOrder.WorkOrderStatus.COMPLETED)
-                            .count();
-                    nodes.add(GraphNode.builder()
-                            .id(techNodeId)
-                            .sourceId(wo.getTechnicianId())
-                            .sourceType("TECHNICIAN")
-                            .label(wo.getTechnicianName())
-                            .type("TECHNICIAN")
-                            .category("MAINTENANCE")
-                            .status(activeJobs > 0 ? "ASSIGNED" : "AVAILABLE")
-                            .tower(wo.getTower())
-                            .details(activeJobs + " active work order(s)")
-                            .build());
-                }
-                String eId = "edge-" + techNodeId + "-" + woNodeId;
-                if (edgeIds.add(eId)) {
-                    edges.add(GraphEdge.builder()
-                            .id(eId)
-                            .source(techNodeId)
-                            .target(woNodeId)
-                            .relationship("ASSIGNED_TO")
-                            .label("Executes " + wo.getWoNumber())
-                            .build());
-                }
-            }
-        }
-
-        return ResponseEntity.ok(MemoryGraphResponse.builder()
-                .nodes(nodes)
-                .edges(edges)
-                .totalNodes(nodes.size())
-                .totalEdges(edges.size())
-                .generatedAt(LocalDateTime.now())
-                .build());
+    @DeleteMapping("/memory-graph/layout")
+    @PreAuthorize("hasAnyRole('MANAGEMENT', 'MAINTENANCE', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> resetMemoryGraphLayout() {
+        User actor = auditService.requireCurrentUser();
+        memoryGraphService.resetLayout();
+        auditService.logAction(actor, "RESET_GRAPH_LAYOUT", "MEMORY_GRAPH", "layout",
+                "Reset persisted Memory Graph node positions to automatic hierarchy");
+        return ResponseEntity.ok(Map.of("message", "Graph layout positions reset."));
     }
 
     @GetMapping("/reliability-radar")
@@ -514,40 +394,6 @@ public class IntelligenceController {
 
     private double round1(double val) {
         return Math.round(val * 10.0) / 10.0;
-    }
-
-    @Data
-    @Builder
-    public static class MemoryGraphResponse {
-        private List<GraphNode> nodes;
-        private List<GraphEdge> edges;
-        private int totalNodes;
-        private int totalEdges;
-        private LocalDateTime generatedAt;
-    }
-
-    @Data
-    @Builder
-    public static class GraphNode {
-        private String id;
-        private String sourceId;
-        private String sourceType;
-        private String label;
-        private String type;
-        private String category;
-        private String status;
-        private String tower;
-        private String details;
-    }
-
-    @Data
-    @Builder
-    public static class GraphEdge {
-        private String id;
-        private String source;
-        private String target;
-        private String relationship;
-        private String label;
     }
 
     @Data

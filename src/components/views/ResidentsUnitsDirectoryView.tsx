@@ -12,8 +12,12 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
   const [payments, setPayments] = useState<DuesPayment[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [pendingClaims, setPendingClaims] = useState<import('../../types').User[]>([]);
+  const [staffInvites, setStaffInvites] = useState<import('../../types').InvitationRecord[]>([]);
   const [loadingClaims, setLoadingClaims] = useState(false);
   const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
+  const [inviteRole, setInviteRole] = useState<'SECURITY' | 'MAINTENANCE'>('SECURITY');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [issuingInvite, setIssuingInvite] = useState(false);
 
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [payingUnitId, setPayingUnitId] = useState<string | null>(null);
@@ -50,10 +54,14 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
     if (!canManageUnits) return;
     setLoadingClaims(true);
     try {
-      const data = await ApiService.getPendingUnitVerifications();
-      setPendingClaims(data || []);
+      const [regData, invData] = await Promise.all([
+        ApiService.getPendingRegistrations(),
+        ApiService.getInvitations()
+      ]);
+      setPendingClaims(regData || []);
+      setStaffInvites(invData || []);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to load pending unit claims', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to load pending approvals', 'error');
     } finally {
       setLoadingClaims(false);
     }
@@ -115,7 +123,7 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
   const handleVerifyClaim = async (claimUser: import('../../types').User, approve: boolean) => {
     setVerifyingUserId(claimUser.id);
     try {
-      await ApiService.verifyUnitClaim(claimUser.id, {
+      await ApiService.reviewRegistration(claimUser.id, {
         approve,
         tower: claimUser.requestedTower,
         unitNumber: claimUser.requestedUnitNumber
@@ -123,14 +131,33 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
       await Promise.all([loadPendingClaims(), refreshData()]);
       showToast(
         approve
-          ? `Approved unit ${claimUser.requestedUnitNumber || ''} for ${claimUser.name}.`
-          : `Declined unit claim for ${claimUser.name}.`,
+          ? `Approved ${claimUser.requestedRole || claimUser.role} registration for ${claimUser.name}.`
+          : `Declined registration for ${claimUser.name}.`,
         approve ? 'success' : 'info'
       );
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Verification action failed', 'error');
+      showToast(err instanceof Error ? err.message : 'Review action failed', 'error');
     } finally {
       setVerifyingUserId(null);
+    }
+  };
+
+  const handleIssueStaffInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIssuingInvite(true);
+    try {
+      const created = await ApiService.createInvitation({
+        targetRole: inviteRole,
+        invitedEmail: inviteEmail.trim() || undefined,
+        expiresInHours: 72
+      });
+      setInviteEmail('');
+      await loadPendingClaims();
+      showToast(`Issued ${created.targetRole} invite code: ${created.inviteCode}`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to issue staff invite', 'error');
+    } finally {
+      setIssuingInvite(false);
     }
   };
 
@@ -218,7 +245,7 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
                   activeSubTab === 'PENDING_CLAIMS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600'
                 }`}
               >
-                <span>Unit Claims</span>
+                <span>Approvals &amp; Invites</span>
                 {pendingClaims.length > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px]">
                     {pendingClaims.length}
@@ -449,72 +476,134 @@ export const ResidentsUnitsDirectoryView: React.FC = () => {
           )}
         </div>
       ) : (
-        /* Pending Unit Claims Verification Queue */
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+        /* Pending Approvals & Staff Invitations */
+        <div className="space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="font-headline font-bold text-slate-900 text-sm">
+                  Pending Resident &amp; Staff Registrations
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Review Resident unit claims plus Security and Maintenance onboarding requests before sign-in unlocks.
+                </p>
+              </div>
+              <button
+                onClick={loadPendingClaims}
+                className="text-xs font-bold text-primary hover:underline"
+              >
+                Refresh Queue
+              </button>
+            </div>
+            {loadingClaims ? (
+              <div className="p-10 text-center text-xs text-slate-500">Loading pending approvals...</div>
+            ) : pendingClaims.length === 0 ? (
+              <div className="p-10 text-center text-xs text-slate-500">
+                No pending Resident or Staff registration approvals in queue.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {pendingClaims.map((claim) => {
+                  const targetRole = claim.requestedRole || claim.role;
+                  return (
+                    <div
+                      key={claim.id}
+                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-slate-900 text-sm">{claim.name}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-primary text-[10px] font-bold">
+                            {targetRole}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                            {(claim.approvalStatus || 'PENDING_VERIFICATION').replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {claim.email} • {claim.phone}
+                        </div>
+                        <div className="text-xs font-semibold text-primary mt-1">
+                          {targetRole === 'RESIDENT'
+                            ? `Claimed Unit: ${claim.requestedTower || 'Unspecified Tower'} — ${claim.requestedUnitNumber || 'Unspecified Flat'}`
+                            : targetRole === 'SECURITY'
+                            ? `Security Badge: ${claim.staffBadgeId || 'Provided on review'} • Gate: ${claim.tower || 'Main Gate'}`
+                            : `Maintenance Specialization: ${claim.maintenanceSpecialization || 'General MEP'}`}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <button
+                          onClick={() => handleVerifyClaim(claim, true)}
+                          disabled={verifyingUserId === claim.id}
+                          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+                        >
+                          {verifyingUserId === claim.id ? 'Processing...' : 'Approve Account'}
+                        </button>
+                        <button
+                          onClick={() => handleVerifyClaim(claim, false)}
+                          disabled={verifyingUserId === claim.id}
+                          className="px-3.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 rounded-lg text-xs font-bold"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 space-y-4">
             <div>
               <h3 className="font-headline font-bold text-slate-900 text-sm">
-                Pending Resident Unit Claims
+                Issue Security / Maintenance Staff Invitation
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Public signup accounts remain unlinked until Management verifies the claimed flat against the unit directory.
+                Staff members redeeming an active code onboard immediately without waiting in the manual queue.
               </p>
             </div>
-            <button
-              onClick={loadPendingClaims}
-              className="text-xs font-bold text-primary hover:underline"
-            >
-              Refresh Queue
-            </button>
+            <form onSubmit={handleIssueStaffInvite} className="flex flex-wrap items-center gap-2">
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as 'SECURITY' | 'MAINTENANCE')}
+                className="h-9 px-3 text-xs rounded-lg border border-slate-300 bg-white font-bold"
+              >
+                <option value="SECURITY">SECURITY</option>
+                <option value="MAINTENANCE">MAINTENANCE</option>
+              </select>
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Optional staff email lock"
+                className="h-9 px-3 text-xs rounded-lg border border-slate-300 flex-1 min-w-[200px]"
+              />
+              <button
+                type="submit"
+                disabled={issuingInvite}
+                className="h-9 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold"
+              >
+                {issuingInvite ? 'Generating...' : 'Generate Staff Code'}
+              </button>
+            </form>
+            {staffInvites.length > 0 && (
+              <div className="divide-y divide-slate-100 border-t border-slate-100 pt-2">
+                {staffInvites.slice(0, 6).map((inv) => (
+                  <div key={inv.id} className="py-2 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-mono font-bold text-primary">{inv.inviteCode}</span>
+                      <span className="ml-2 font-semibold text-slate-700">{inv.targetRole}</span>
+                      {inv.invitedEmail && <span className="ml-2 text-slate-500">({inv.invitedEmail})</span>}
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px]">
+                      {inv.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {loadingClaims ? (
-            <div className="p-10 text-center text-xs text-slate-500">Loading pending unit claims...</div>
-          ) : pendingClaims.length === 0 ? (
-            <div className="p-10 text-center text-xs text-slate-500">
-              No pending unit verification claims in queue.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {pendingClaims.map((claim) => (
-                <div
-                  key={claim.id}
-                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 text-sm">{claim.name}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-                        PENDING VERIFICATION
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      {claim.email} • {claim.phone}
-                    </div>
-                    <div className="text-xs font-semibold text-primary mt-1">
-                      Claimed Unit: {claim.requestedTower || 'Unspecified Tower'} —{' '}
-                      {claim.requestedUnitNumber || 'Unspecified Flat'}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 self-end sm:self-center">
-                    <button
-                      onClick={() => handleVerifyClaim(claim, true)}
-                      disabled={verifyingUserId === claim.id || !claim.requestedUnitNumber}
-                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
-                    >
-                      {verifyingUserId === claim.id ? 'Processing...' : 'Verify & Link Unit'}
-                    </button>
-                    <button
-                      onClick={() => handleVerifyClaim(claim, false)}
-                      disabled={verifyingUserId === claim.id}
-                      className="px-3.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 rounded-lg text-xs font-bold"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

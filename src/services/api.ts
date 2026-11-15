@@ -10,7 +10,11 @@ import {
   DuesPayment,
   IncidentAlert,
   InventoryMovement,
+  InvitationRecord,
   MemoryGraphData,
+  MemoryGraphExpandData,
+  MemoryGraphNodeDetail,
+  MemoryGraphPathResult,
   Parcel,
   PreventiveCompletionLog,
   PreventiveSchedule,
@@ -103,9 +107,13 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: AxiosError<any>) => {
     const reqUrl = error.config?.url || '';
-    const isAuthEndpoint = reqUrl.includes('/auth/login') || reqUrl.includes('/auth/register');
+    const isAuthEndpoint =
+      reqUrl.includes('/auth/login') ||
+      reqUrl.includes('/auth/register') ||
+      reqUrl.includes('/auth/accept-invitation') ||
+      reqUrl.includes('/auth/invitations/validate');
     if (error.response?.status === 401 && !isAuthEndpoint && currentJwtToken) {
       setAuthToken(null);
       if (typeof window !== 'undefined') {
@@ -115,7 +123,13 @@ apiClient.interceptors.response.use(
         unauthorizedHandler();
       }
     }
-    return Promise.reject(new Error(extractApiErrorMessage(error)));
+    const enrichedErr: any = new Error(extractApiErrorMessage(error));
+    if (error.response?.data && typeof error.response.data === 'object') {
+      enrichedErr.approvalStatus = error.response.data.approvalStatus;
+      enrichedErr.reviewDecisionNotes = error.response.data.reviewDecisionNotes;
+      enrichedErr.requestedRole = error.response.data.requestedRole;
+    }
+    return Promise.reject(enrichedErr);
   }
 );
 
@@ -141,16 +155,79 @@ export const ApiService = {
     email: string;
     phone: string;
     password: string;
+    requestedRole?: UserRole;
     tower?: string;
     unitNumber?: string;
-  }): Promise<{ token: string; user: User; authorizedRoles: UserRole[] }> {
+    societyName?: string;
+    societyAddress?: string;
+    designation?: string;
+    staffBadgeId?: string;
+    maintenanceSpecialization?: string;
+    verificationReference?: string;
+    invitationCode?: string;
+  }): Promise<{
+    token?: string;
+    user: User;
+    authorizedRoles: UserRole[];
+    pendingApproval: boolean;
+    approvalStatus: string;
+    message?: string;
+  }> {
     const res = await apiClient.post('/auth/register', data);
-    const { token, user, authorizedRoles } = res.data;
-    setAuthToken(token);
+    const { token, user, authorizedRoles, pendingApproval, approvalStatus, message } = res.data;
+    if (token && !pendingApproval) {
+      setAuthToken(token);
+    }
     return {
       token,
       user: normalizeUser(user),
-      authorizedRoles
+      authorizedRoles: authorizedRoles || [user?.role || 'RESIDENT'],
+      pendingApproval: Boolean(pendingApproval),
+      approvalStatus: approvalStatus || (pendingApproval ? 'PENDING_APPROVAL' : 'APPROVED'),
+      message
+    };
+  },
+
+  async validateInvitation(code: string): Promise<{
+    valid: boolean;
+    targetRole: UserRole;
+    societyName: string;
+    designation?: string;
+    emailLocked: boolean;
+    invitedEmailHint?: string;
+    expiresAt: string;
+  }> {
+    const res = await apiClient.get('/auth/invitations/validate', { params: { code } });
+    return res.data;
+  },
+
+  async acceptInvitation(data: {
+    inviteCode: string;
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    tower?: string;
+    staffBadgeId?: string;
+    maintenanceSpecialization?: string;
+  }): Promise<{
+    token: string;
+    user: User;
+    authorizedRoles: UserRole[];
+    requiresRoleSelection: boolean;
+    message?: string;
+  }> {
+    const res = await apiClient.post('/auth/accept-invitation', data);
+    const { token, user, authorizedRoles, requiresRoleSelection, message } = res.data;
+    if (token) {
+      setAuthToken(token);
+    }
+    return {
+      token,
+      user: normalizeUser(user),
+      authorizedRoles: authorizedRoles || [user?.role || 'RESIDENT'],
+      requiresRoleSelection: Boolean(requiresRoleSelection),
+      message
     };
   },
 
@@ -229,6 +306,41 @@ export const ApiService = {
   async getPendingUnitVerifications(): Promise<User[]> {
     const res = await apiClient.get('/users/pending-verifications');
     return (res.data || []).map(normalizeUser);
+  },
+
+  async getPendingRegistrations(): Promise<User[]> {
+    const res = await apiClient.get('/users/pending-registrations');
+    return (res.data || []).map(normalizeUser);
+  },
+
+  async reviewRegistration(
+    userId: string,
+    payload: { approve: boolean; tower?: string; unitNumber?: string; notes?: string }
+  ): Promise<User> {
+    const res = await apiClient.post(`/users/${userId}/review-registration`, payload);
+    return normalizeUser(res.data);
+  },
+
+  async getInvitations(): Promise<InvitationRecord[]> {
+    const res = await apiClient.get('/users/invitations');
+    return res.data || [];
+  },
+
+  async createInvitation(payload: {
+    targetRole: UserRole;
+    invitedEmail?: string;
+    societyName?: string;
+    designation?: string;
+    notes?: string;
+    expiresInHours?: number;
+  }): Promise<InvitationRecord> {
+    const res = await apiClient.post('/users/invitations', payload);
+    return res.data;
+  },
+
+  async revokeInvitation(invitationId: string): Promise<InvitationRecord> {
+    const res = await apiClient.post(`/users/invitations/${invitationId}/revoke`);
+    return res.data;
   },
 
   async verifyUnitClaim(
@@ -607,10 +719,46 @@ export const ApiService = {
     return res.data;
   },
 
-  // Intelligence Analytics
-  async getMemoryGraph(): Promise<MemoryGraphData> {
-    const res = await apiClient.get('/analytics/memory-graph');
+  // Intelligence Analytics & Memory Graph
+  async getMemoryGraph(params?: {
+    tower?: string;
+    nodeType?: string;
+    relationship?: string;
+    q?: string;
+  }): Promise<MemoryGraphData> {
+    const res = await apiClient.get('/analytics/memory-graph', { params });
     return res.data;
+  },
+
+  async getMemoryGraphNode(nodeId: string): Promise<MemoryGraphNodeDetail> {
+    const res = await apiClient.get(`/analytics/memory-graph/nodes/${encodeURIComponent(nodeId)}`);
+    return res.data;
+  },
+
+  async expandMemoryGraphNode(nodeId: string): Promise<MemoryGraphExpandData> {
+    const res = await apiClient.get(`/analytics/memory-graph/nodes/${encodeURIComponent(nodeId)}/expand`);
+    return res.data;
+  },
+
+  async searchMemoryGraph(q: string): Promise<MemoryGraphData> {
+    const res = await apiClient.get('/analytics/memory-graph/search', { params: { q } });
+    return res.data;
+  },
+
+  async findMemoryGraphPath(from: string, to: string): Promise<MemoryGraphPathResult> {
+    const res = await apiClient.get('/analytics/memory-graph/path', { params: { from, to } });
+    return res.data;
+  },
+
+  async saveMemoryGraphLayout(
+    positions: { nodeId: string; posX: number; posY: number; pinned?: boolean }[]
+  ): Promise<{ savedCount: number }> {
+    const res = await apiClient.put('/analytics/memory-graph/layout', positions);
+    return res.data;
+  },
+
+  async resetMemoryGraphLayout(): Promise<void> {
+    await apiClient.delete('/analytics/memory-graph/layout');
   },
 
   async getReliabilityRadar(): Promise<ReliabilityRadarData> {

@@ -17,4 +17,7 @@ public class LoginResponseDto {
     private UserResponseDto user;
     private List<Role> authorizedRoles;
     private boolean requiresRoleSelection;
+    private boolean pendingApproval;
+    private String approvalStatus;
+    private String message;
 }

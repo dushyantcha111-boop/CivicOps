@@ -71,7 +71,7 @@ cd ..
 cd backend
 mvn spring-boot:run
 ```
-*(The backend starts on port `8080` and runs Flyway migrations `V1`–`V5` automatically against PostgreSQL).*
+*(The backend starts on port `8080` and runs Flyway migrations `V1`–`V6` automatically against PostgreSQL).*
 
 ### Step 5: Start the React Frontend
 Open a separate PowerShell terminal in the project root:
@@ -98,9 +98,9 @@ npm run dev
 - **Frontend App**: `http://localhost:3000`
 - **Backend API**: `http://localhost:8080/api/v1`
 - **Backend Health**: `http://localhost:8080/api/v1/actuator/health`
-- **Seeded Accounts** (if V2 seed migration applied; otherwise register via Signup or admin console):
+- **Seeded Accounts** (`Password@123`, applied by `V2__seed_demo_data.sql`):
   - **Admin / Multi-Role**: `vikram.admin@civicops.in`
   - **Management**: `suresh.patel@civicops.in`
   - **Resident (Tower B-402)**: `rahul.sharma@greenvalley.in`
   - **Maintenance**: `ramesh.kumar@civicops.in`
-  - **Security**: `sanjay.guard@civicops.in`
+  - **Security**: `satpal.singh@civicops.in`

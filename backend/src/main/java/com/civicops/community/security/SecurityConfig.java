@@ -54,7 +54,15 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register", "/auth/forgot-password", "/actuator/health", "/error").permitAll()
+                .requestMatchers(
+                        "/auth/login",
+                        "/auth/register",
+                        "/auth/accept-invitation",
+                        "/auth/invitations/validate",
+                        "/auth/forgot-password",
+                        "/actuator/health",
+                        "/error"
+                ).permitAll()
                 .anyRequest().authenticated()
             );
 

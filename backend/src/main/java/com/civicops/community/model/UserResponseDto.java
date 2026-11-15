@@ -27,6 +27,16 @@ public class UserResponseDto {
     private String unitVerificationStatus;
     private String avatarUrl;
     private String designation;
+    private Role requestedRole;
+    private String approvalStatus;
+    private String societyName;
+    private String societyAddress;
+    private String staffBadgeId;
+    private String maintenanceSpecialization;
+    private String verificationReference;
+    private String reviewedBy;
+    private LocalDateTime reviewedAt;
+    private String reviewDecisionNotes;
     private Boolean active;
     private LocalDateTime createdAt;
 
@@ -47,6 +57,16 @@ public class UserResponseDto {
                 .unitVerificationStatus(user.getUnitVerificationStatus() != null ? user.getUnitVerificationStatus() : "VERIFIED")
                 .avatarUrl(user.getAvatarUrl())
                 .designation(user.getDesignation())
+                .requestedRole(user.getRequestedRole() != null ? user.getRequestedRole() : user.getRole())
+                .approvalStatus(user.getApprovalStatus() != null ? user.getApprovalStatus() : "APPROVED")
+                .societyName(user.getSocietyName() != null ? user.getSocietyName() : "Green Valley Residency")
+                .societyAddress(user.getSocietyAddress())
+                .staffBadgeId(user.getStaffBadgeId())
+                .maintenanceSpecialization(user.getMaintenanceSpecialization())
+                .verificationReference(user.getVerificationReference())
+                .reviewedBy(user.getReviewedBy())
+                .reviewedAt(user.getReviewedAt())
+                .reviewDecisionNotes(user.getReviewDecisionNotes())
                 .active(user.getActive() == null || user.getActive())
                 .createdAt(user.getCreatedAt())
                 .build();

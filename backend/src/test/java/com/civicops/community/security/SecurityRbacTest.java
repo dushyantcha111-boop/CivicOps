@@ -32,6 +32,8 @@ class SecurityRbacTest {
     private MockMvc mockMvc;
 
     @MockBean private UserRepository userRepository;
+    @MockBean private UnitRepository unitRepository;
+    @MockBean private InvitationRepository invitationRepository;
     @MockBean private RevokedTokenRepository revokedTokenRepository;
     @MockBean private AuditService auditService;
     @MockBean private AssetRepository assetRepository;

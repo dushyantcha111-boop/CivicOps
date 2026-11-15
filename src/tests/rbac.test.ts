@@ -48,3 +48,11 @@ test('Resident role can manage own visitor passes and parcels but cannot access 
   assert.equal(isTabAllowedForRole('RESIDENT', 'complaint-operations'), false);
   assert.equal(isTabAllowedForRole('RESIDENT', 'residents-directory'), false);
 });
+
+test('Community Memory Graph is allowed for Resident, Maintenance, Management, and Admin but blocked for Security', () => {
+  assert.equal(isTabAllowedForRole('RESIDENT', 'memory-graph'), true);
+  assert.equal(isTabAllowedForRole('MAINTENANCE', 'memory-graph'), true);
+  assert.equal(isTabAllowedForRole('MANAGEMENT', 'memory-graph'), true);
+  assert.equal(isTabAllowedForRole('ADMIN', 'memory-graph'), true);
+  assert.equal(isTabAllowedForRole('SECURITY', 'memory-graph'), false);
+});

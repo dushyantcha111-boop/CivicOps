@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = tokenProvider.getEmailFromJWT(jwt);
                 com.civicops.community.model.User appUser = userRepository.findByEmail(email).orElse(null);
 
-                if (appUser != null && !Boolean.FALSE.equals(appUser.getActive())) {
+                if (appUser != null && !Boolean.FALSE.equals(appUser.getActive()) && appUser.isAccountApproved()) {
                     List<Role> authorizedRoles = appUser.getAuthorizedRoleList();
                     Role effectiveRole = appUser.getRole();
                     if (effectiveRole == null || !authorizedRoles.contains(effectiveRole)) {

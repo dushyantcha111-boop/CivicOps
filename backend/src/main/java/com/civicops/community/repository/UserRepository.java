@@ -14,4 +14,5 @@ public interface UserRepository extends JpaRepository<User, String> {
     List<User> findByRole(Role role);
     List<User> findByAuthorizedRolesContainingIgnoreCase(String roleFragment);
     List<User> findByUnitVerificationStatus(String unitVerificationStatus);
+    List<User> findByApprovalStatusIn(List<String> approvalStatuses);
 }

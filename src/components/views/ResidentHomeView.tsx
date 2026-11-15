@@ -305,6 +305,35 @@ export const ResidentHomeView: React.FC = () => {
         </button>
       </section>
 
+      {/* Community Memory Graph Banner */}
+      <section className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-4 sm:p-5 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-slate-800">
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-primary/25 border border-primary/40 flex items-center justify-center text-blue-300 shrink-0">
+            <span className="material-symbols-outlined text-[24px]">hub</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-headline font-bold text-sm sm:text-base text-white">
+                Community Memory Graph
+              </h2>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-400/30">
+                Live Lineage
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+              Trace how your tickets connect to tower assets, work orders, and preventive maintenance schedules in real time.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setActiveTab('memory-graph')}
+          className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+        >
+          <span>Explore Graph</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </button>
+      </section>
+
       {/* Active Visitor Passes for This Flat */}
       <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs">
         <div className="flex items-center justify-between mb-4">

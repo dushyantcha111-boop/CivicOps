@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ApiService } from '../../services/api';
-import { User, UserRole } from '../../types';
+import { InvitationRecord, User, UserRole } from '../../types';
 
 const ALL_ROLES: UserRole[] = ['RESIDENT', 'MANAGEMENT', 'MAINTENANCE', 'SECURITY', 'ADMIN'];
 
@@ -51,9 +51,21 @@ export const SettingsRolesPermissionsView: React.FC = () => {
   const { currentUser, showToast } = useApp();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [pendingRegistrations, setPendingRegistrations] = useState<User[]>([]);
+  const [invitations, setInvitations] = useState<InvitationRecord[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [reviewNotesMap, setReviewNotesMap] = useState<Record<string, string>>({});
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
+
+  // Invitation Modal
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteRole, setInviteRole] = useState<UserRole>('MANAGEMENT');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteDesignation, setInviteDesignation] = useState('');
+  const [inviteExpiryHours, setInviteExpiryHours] = useState(72);
+  const [creatingInvite, setCreatingInvite] = useState(false);
 
   // Create User Modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -75,10 +87,16 @@ export const SettingsRolesPermissionsView: React.FC = () => {
   const loadUsers = async () => {
     setLoadingUsers(true);
     try {
-      const data = await ApiService.getUsers();
-      setUsers(data || []);
+      const [usersData, pendingData, invitesData] = await Promise.all([
+        ApiService.getUsers(),
+        ApiService.getPendingRegistrations(),
+        ApiService.getInvitations()
+      ]);
+      setUsers(usersData || []);
+      setPendingRegistrations(pendingData || []);
+      setInvitations(invitesData || []);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to load user directory', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to load governance data', 'error');
     } finally {
       setLoadingUsers(false);
     }
@@ -163,6 +181,70 @@ export const SettingsRolesPermissionsView: React.FC = () => {
     }
   };
 
+  const handleReviewRegistration = async (user: User, approve: boolean) => {
+    setReviewingId(user.id);
+    try {
+      await ApiService.reviewRegistration(user.id, {
+        approve,
+        tower: user.requestedTower,
+        unitNumber: user.requestedUnitNumber,
+        notes: reviewNotesMap[user.id] || undefined
+      });
+      await loadUsers();
+      showToast(
+        approve
+          ? `Approved ${user.requestedRole || user.role} registration for ${user.name}.`
+          : `Declined registration for ${user.name}.`,
+        approve ? 'success' : 'info'
+      );
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Registration review failed', 'error');
+    } finally {
+      setReviewingId(null);
+    }
+  };
+
+  const handleCreateInvitation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingInvite(true);
+    try {
+      const created = await ApiService.createInvitation({
+        targetRole: inviteRole,
+        invitedEmail: inviteEmail.trim() || undefined,
+        designation: inviteDesignation.trim() || undefined,
+        expiresInHours: Number(inviteExpiryHours) || 72
+      });
+      await loadUsers();
+      setIsInviteOpen(false);
+      setInviteEmail('');
+      setInviteDesignation('');
+      showToast(`Invitation ${created.inviteCode} issued for ${created.targetRole}.`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to create invitation', 'error');
+    } finally {
+      setCreatingInvite(false);
+    }
+  };
+
+  const handleRevokeInvitation = async (inv: InvitationRecord) => {
+    try {
+      await ApiService.revokeInvitation(inv.id);
+      await loadUsers();
+      showToast(`Revoked invitation ${inv.inviteCode}.`, 'info');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to revoke invitation', 'error');
+    }
+  };
+
+  const handleCopyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      showToast(`Copied invitation code ${code} to clipboard.`);
+    } catch {
+      showToast(`Invitation code: ${code}`, 'info');
+    }
+  };
+
   const handleQuickVerifyUnit = async (user: User, approve: boolean) => {
     try {
       await ApiService.verifyUnitClaim(user.id, {
@@ -214,13 +296,204 @@ export const SettingsRolesPermissionsView: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs self-start sm:self-auto"
-        >
-          <span className="material-symbols-outlined text-[18px]">person_add</span>
-          <span>Create Account</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setIsInviteOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+          >
+            <span className="material-symbols-outlined text-[18px]">mail_lock</span>
+            <span>Issue Invitation</span>
+          </button>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+          >
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            <span>Create Account</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Pending Multi-Role Registration Approvals */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="p-4 border-b border-slate-200 bg-amber-50/70 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-headline font-bold text-slate-900 text-sm flex items-center gap-2">
+              <span>Pending Registration Approvals</span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                {pendingRegistrations.length} Waiting
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Management, Resident, Security, and Maintenance signups remain locked until reviewed and approved.
+            </p>
+          </div>
+          <button onClick={loadUsers} className="text-xs font-bold text-primary hover:underline">
+            Refresh
+          </button>
+        </div>
+        {pendingRegistrations.length === 0 ? (
+          <div className="p-6 text-center text-xs text-slate-500">
+            No pending registration requests in the approval queue.
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {pendingRegistrations.map((req) => (
+              <div key={req.id} className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-slate-900 text-sm">{req.name}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-blue-100 text-primary text-[10px] font-bold">
+                      {req.requestedRole || req.role}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                      {(req.approvalStatus || 'PENDING_APPROVAL').replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {req.email} • {req.phone}
+                    {req.societyName ? ` • ${req.societyName}` : ''}
+                  </div>
+                  <div className="text-xs text-slate-700 flex flex-wrap gap-3">
+                    {req.requestedUnitNumber && (
+                      <span>
+                        <strong>Unit Claim:</strong> {req.requestedTower} — {req.requestedUnitNumber}
+                      </span>
+                    )}
+                    {req.designation && (
+                      <span>
+                        <strong>Designation:</strong> {req.designation}
+                      </span>
+                    )}
+                    {req.staffBadgeId && (
+                      <span>
+                        <strong>Badge ID:</strong> {req.staffBadgeId}
+                      </span>
+                    )}
+                    {req.maintenanceSpecialization && (
+                      <span>
+                        <strong>Trade:</strong> {req.maintenanceSpecialization}
+                      </span>
+                    )}
+                    {req.verificationReference && (
+                      <span>
+                        <strong>Ref:</strong> {req.verificationReference}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="text"
+                    value={reviewNotesMap[req.id] || ''}
+                    onChange={(e) =>
+                      setReviewNotesMap((prev) => ({ ...prev, [req.id]: e.target.value }))
+                    }
+                    placeholder="Decision notes (optional)"
+                    className="h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-slate-50 w-44"
+                  />
+                  <button
+                    type="button"
+                    disabled={reviewingId === req.id}
+                    onClick={() => handleReviewRegistration(req, true)}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+                  >
+                    {reviewingId === req.id ? '...' : 'Approve'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={reviewingId === req.id}
+                    onClick={() => handleReviewRegistration(req, false)}
+                    className="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 rounded-lg text-xs font-bold"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Onboarding Invitations Registry */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <div>
+            <h3 className="font-headline font-bold text-slate-900 text-sm">
+              Admin, Management &amp; Staff Invitations ({invitations.length})
+            </h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Single-use cryptographic invite codes are the exclusive path to provision new Administrators.
+            </p>
+          </div>
+        </div>
+        {invitations.length === 0 ? (
+          <div className="p-6 text-center text-xs text-slate-500">
+            No onboarding invitations issued yet. Click &ldquo;Issue Invitation&rdquo; to create one.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100/70 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="py-2.5 px-4">Invite Code</th>
+                  <th className="py-2.5 px-4">Target Role</th>
+                  <th className="py-2.5 px-4">Locked Email / Designation</th>
+                  <th className="py-2.5 px-4">Expires</th>
+                  <th className="py-2.5 px-4">Status</th>
+                  <th className="py-2.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {invitations.map((inv) => (
+                  <tr key={inv.id} className="hover:bg-slate-50">
+                    <td className="py-2.5 px-4 font-mono font-bold text-primary">{inv.inviteCode}</td>
+                    <td className="py-2.5 px-4 font-bold text-slate-800">{inv.targetRole}</td>
+                    <td className="py-2.5 px-4 text-slate-600">
+                      {inv.invitedEmail || 'Any email matching role'}
+                      {inv.designation ? ` • ${inv.designation}` : ''}
+                    </td>
+                    <td className="py-2.5 px-4 text-slate-500">
+                      {new Date(inv.expiresAt).toLocaleString()}
+                    </td>
+                    <td className="py-2.5 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          inv.status === 'ACTIVE'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : inv.status === 'USED'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-4 text-right space-x-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCode(inv.inviteCode)}
+                        className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs text-slate-700"
+                      >
+                        Copy
+                      </button>
+                      {inv.status === 'ACTIVE' && (
+                        <button
+                          type="button"
+                          onClick={() => handleRevokeInvitation(inv)}
+                          className="px-2.5 py-1 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg font-bold text-xs"
+                        >
+                          Revoke
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* User Directory Card */}
@@ -589,6 +862,84 @@ export const SettingsRolesPermissionsView: React.FC = () => {
                 className="px-5 py-2 bg-primary hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
               >
                 {isSavingRoles ? 'Saving...' : 'Save Roles'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Issue Invitation Modal */}
+      {isInviteOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleCreateInvitation}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-3.5"
+          >
+            <h3 className="font-headline font-bold text-base text-slate-900">
+              Issue Onboarding Invitation
+            </h3>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Target Role</label>
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as UserRole)}
+                className="w-full h-9 px-2.5 text-xs rounded-lg border border-slate-300 bg-white font-semibold"
+              >
+                <option value="ADMIN">ADMIN (Platform Administrator)</option>
+                <option value="MANAGEMENT">MANAGEMENT (Society Management)</option>
+                <option value="SECURITY">SECURITY (Gatehouse Staff)</option>
+                <option value="MAINTENANCE">MAINTENANCE (MEP Technician)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Lock to Email (Recommended for Admin)
+              </label>
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="optional@civicops.in"
+                className="w-full h-9 px-2.5 text-xs rounded-lg border border-slate-300"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Designation</label>
+                <input
+                  type="text"
+                  value={inviteDesignation}
+                  onChange={(e) => setInviteDesignation(e.target.value)}
+                  placeholder="e.g. Estate Treasurer"
+                  className="w-full h-9 px-2.5 text-xs rounded-lg border border-slate-300"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Expiry (Hours)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={720}
+                  value={inviteExpiryHours}
+                  onChange={(e) => setInviteExpiryHours(Number(e.target.value))}
+                  className="w-full h-9 px-2.5 text-xs rounded-lg border border-slate-300"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsInviteOpen(false)}
+                className="px-4 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creatingInvite}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+              >
+                {creatingInvite ? 'Issuing...' : 'Generate Invite Code'}
               </button>
             </div>
           </form>

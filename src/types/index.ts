@@ -16,8 +16,37 @@ export interface User {
   unitVerificationStatus?: 'VERIFIED' | 'PENDING_VERIFICATION' | 'REJECTED' | string;
   avatarUrl: string;
   designation?: string;
+  requestedRole?: UserRole;
+  approvalStatus?: 'APPROVED' | 'PENDING_APPROVAL' | 'PENDING_VERIFICATION' | 'REJECTED' | string;
+  societyName?: string;
+  societyAddress?: string;
+  staffBadgeId?: string;
+  maintenanceSpecialization?: string;
+  verificationReference?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  reviewDecisionNotes?: string;
   active?: boolean;
   createdAt?: string;
+}
+
+export interface InvitationRecord {
+  id: string;
+  inviteCode: string;
+  invitedEmail?: string;
+  targetRole: UserRole;
+  societyName: string;
+  designation?: string;
+  notes?: string;
+  createdById: string;
+  createdByName: string;
+  expiresAt: string;
+  maxUses: number;
+  usedCount: number;
+  status: 'ACTIVE' | 'USED' | 'REVOKED' | 'EXPIRED' | string;
+  usedByUserId?: string;
+  usedAt?: string;
+  createdAt: string;
 }
 
 export interface Unit {
@@ -277,16 +306,33 @@ export interface PreventiveCompletionLog {
   completedAt: string;
 }
 
+export type MemoryGraphNodeType =
+  | 'TOWER'
+  | 'ASSET'
+  | 'COMPLAINT'
+  | 'WORK_ORDER'
+  | 'TECHNICIAN'
+  | 'PREVENTIVE_SCHEDULE'
+  | 'RECURRENCE_INVESTIGATION'
+  | 'SPARE_PART';
+
 export interface MemoryGraphNode {
   id: string;
   sourceId: string;
-  sourceType: 'TOWER' | 'ASSET' | 'COMPLAINT' | 'WORK_ORDER' | 'TECHNICIAN';
+  sourceType: MemoryGraphNodeType;
   label: string;
-  type: 'TOWER' | 'ASSET' | 'COMPLAINT' | 'WORK_ORDER' | 'TECHNICIAN';
+  type: MemoryGraphNodeType;
   category: string;
   status: string;
   tower: string;
   details: string;
+  provenance?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  metadata?: Record<string, any>;
+  posX?: number;
+  posY?: number;
+  pinned?: boolean;
 }
 
 export interface MemoryGraphEdge {
@@ -295,6 +341,9 @@ export interface MemoryGraphEdge {
   target: string;
   relationship: string;
   label: string;
+  provenance?: string;
+  createdAt?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface MemoryGraphData {
@@ -302,7 +351,46 @@ export interface MemoryGraphData {
   edges: MemoryGraphEdge[];
   totalNodes: number;
   totalEdges: number;
+  scopeRole?: string;
+  availableNodeTypes?: string[];
+  availableRelationships?: string[];
   generatedAt: string;
+}
+
+export interface MemoryGraphNodeDetail {
+  node: MemoryGraphNode;
+  incomingEdges: MemoryGraphEdge[];
+  outgoingEdges: MemoryGraphEdge[];
+  connectedNodes: MemoryGraphNode[];
+  generatedAt: string;
+}
+
+export interface MemoryGraphExpandData {
+  rootNodeId: string;
+  nodes: MemoryGraphNode[];
+  edges: MemoryGraphEdge[];
+  generatedAt: string;
+}
+
+export interface MemoryGraphPathStep {
+  fromNodeId: string;
+  fromLabel: string;
+  toNodeId: string;
+  toLabel: string;
+  edgeId: string;
+  relationship: string;
+  direction: 'OUTGOING' | 'INCOMING' | string;
+  label: string;
+}
+
+export interface MemoryGraphPathResult {
+  found: boolean;
+  fromNodeId: string;
+  toNodeId: string;
+  hopCount: number;
+  pathNodeIds: string[];
+  pathEdgeIds: string[];
+  steps: MemoryGraphPathStep[];
 }
 
 export interface ReliabilityRadarData {

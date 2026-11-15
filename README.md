@@ -8,17 +8,22 @@
 
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS v4, Axios
 - **Backend**: Java 17, Spring Boot 3.2.4, Spring Security (JWT + BCrypt), Spring Data JPA / Hibernate
-- **Database & Migrations**: PostgreSQL 15, Flyway (`V1`–`V5`)
+- **Database & Migrations**: PostgreSQL 15, Flyway (`V1`–`V6`)
 - **Local Dev & Deployment**: Windows 11 PowerShell scripts, VS Code tasks, Docker Compose (Postgres), Netlify-ready SPA config (`netlify.toml`)
 
 ---
 
 ## 2. Core Modules & Security Architecture
 
-### Authentication & Unit Claim Verification
-- **Login-First Security**: Unauthenticated visitors land on the Login page (`POST /api/v1/auth/login`). Tokens are validated server-side against PostgreSQL with BCrypt hashes and stored per-session in `sessionStorage` with `jti` revocation on logout.
+### Authentication, Multi-Role Onboarding & Approval Governance
+- **Login-First Security**: Unauthenticated visitors land on the Login page (`POST /api/v1/auth/login`). Tokens are validated server-side against PostgreSQL with BCrypt hashes and stored per-session in `sessionStorage` with `jti` revocation on logout. Unapproved (`PENDING_VERIFICATION`, `PENDING_APPROVAL`) or `REJECTED` accounts are blocked at login with explicit status feedback.
 - **Authorized Role Selection**: Multi-role staff accounts (e.g., Admin + Management) choose their active session scope after login via `/api/v1/auth/switch-role`.
-- **Unit Claim Verification**: Public registration (`POST /api/v1/auth/register`) creates `RESIDENT` accounts with `unitVerificationStatus = PENDING_VERIFICATION`. Unverified residents cannot view another apartment's unit details, visitor passes, parcels, or dues until Estate Management or Admin verifies their unit claim (`POST /api/v1/users/{id}/verify-unit`).
+- **Multi-Role Self-Registration (`POST /api/v1/auth/register`)**: Public signup supports role-tailored onboarding for `RESIDENT`, `MANAGEMENT`, `SECURITY`, and `MAINTENANCE` with strict server-side field validation (`unitNumber` for Resident, `societyName` + `designation` for Management, `staffBadgeId` or invite code for Security, `maintenanceSpecialization` for Maintenance). Public `ADMIN` signup is blocked with `403`. Accounts enter `PENDING_VERIFICATION` / `PENDING_APPROVAL` (without issuing a JWT) until reviewed via `/api/v1/users/{id}/review-registration`.
+- **Invitation Onboarding (`POST /api/v1/users/invitations`, `/api/v1/auth/invitations/validate`, `/api/v1/auth/accept-invitation`)**: Administrators can issue single-use cryptographic invitations for `ADMIN`, `MANAGEMENT`, `SECURITY`, or `MAINTENANCE` (Management can invite `SECURITY` / `MAINTENANCE`). Roles are enforced from the persisted invitation record rather than client input.
+
+### Community Memory Graph (Signature Intelligence Module)
+- **Interactive Knowledge Graph (`/api/v1/analytics/memory-graph*`)**: Models `TOWER`, `ASSET`, `COMPLAINT`, `WORK_ORDER`, `TECHNICIAN`, `PREVENTIVE_SCHEDULE`, `RECURRENCE_INVESTIGATION`, and `SPARE_PART` entities connected via 9 semantic relationships (`LOCATED_IN`, `AFFECTS_ASSET`, `RESOLVES_ISSUE`, `SERVICES_ASSET`, `ASSIGNED_TO`, `PREVENTIVE_FOR`, `ROOT_CAUSE_FOR`, `CLUSTER_INCLUDES`, `CONSUMES_SPARE`).
+- **Interactive Exploration**: Supports zoom, pan, fit-to-screen, drag-and-drop node positioning persisted to PostgreSQL (`PUT /analytics/memory-graph/layout`), node & edge provenance inspectors, 1-hop expansion, branch collapse/expand, search + highlight, entity/relationship/tower filters, shortest-path lineage tracing (`/analytics/memory-graph/path`), and strict role-based graph scoping (Residents only see their own complaints and permitted tower assets/PM schedules; Security is blocked).
 
 ### 9-Step Complaint & Resolution Governance
 1. **Submit (`RESIDENT` / `MANAGEMENT` / `ADMIN`)**: Logs ticket + automatic SLA deadline + recurrence warning.
@@ -35,7 +40,7 @@
 - **Gatehouse & Visitor Lifecycle**: Pre-approved 6-digit PINs, QR/PIN verification (`SECURITY`), walk-in registration, visitor check-out with overstay calculation, and pass revocation (`RESIDENT` for own verified unit, `SECURITY`, `MANAGEMENT`, `ADMIN`).
 - **Parcel & Smart Locker Hub**: Gate intake with generated 6-digit pickup OTP and verified unit collection.
 - **Preventive Maintenance & Asset Register**: Scheduled PM cycles, overdue sync, PM work-order generation, and inventory reorder/movements.
-- **Community Memory Graph, Reliability Radar & Recurrence Queue**: Deterministic graph and scoring derived strictly from PostgreSQL tickets, work orders, assets, and PM schedules.
+- **Reliability Radar & Recurrence Queue**: Deterministic scoring and recurrence cluster analysis derived strictly from PostgreSQL tickets, work orders, assets, and PM schedules.
 - **Community Hub, Notifications & Audit Ledger**: Announcements, RSVP events, visibility-scoped documents, role/user notifications, and CSV-exportable security audit logs.
 
 ---
@@ -93,6 +98,6 @@ All seeded users in Flyway `V2__seed_demo_data.sql` use password **`Password@123
 | `MANAGEMENT` | `suresh.patel@civicops.in` | Estate Manager |
 | `RESIDENT` | `rahul.sharma@greenvalley.in` | Verified Unit `B-402` (`Tower B`) |
 | `MAINTENANCE` | `ramesh.kumar@civicops.in` | Senior Facility Technician |
-| `SECURITY` | `arjun.singh@civicops.in` | Head Gatehouse Officer |
+| `SECURITY` | `satpal.singh@civicops.in` | Gate 1 Lead Marshall |
 
 For detailed setup and cloud deployment steps, see [`LOCAL_SETUP.md`](./LOCAL_SETUP.md) and [`DEPLOYMENT.md`](./DEPLOYMENT.md).

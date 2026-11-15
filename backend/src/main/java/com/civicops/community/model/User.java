@@ -60,9 +60,49 @@ public class User {
 
     private String designation;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "requested_role", length = 30)
+    private Role requestedRole;
+
+    @Builder.Default
+    @Column(name = "approval_status", length = 30)
+    private String approvalStatus = "APPROVED";
+
+    @Builder.Default
+    @Column(name = "society_name", length = 150)
+    private String societyName = "Green Valley Residency";
+
+    @Column(name = "society_address", length = 255)
+    private String societyAddress;
+
+    @Column(name = "staff_badge_id", length = 60)
+    private String staffBadgeId;
+
+    @Column(name = "maintenance_specialization", length = 120)
+    private String maintenanceSpecialization;
+
+    @Column(name = "verification_reference", length = 255)
+    private String verificationReference;
+
+    @Column(name = "reviewed_by", length = 120)
+    private String reviewedBy;
+
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
+
+    @Column(name = "review_decision_notes", columnDefinition = "TEXT")
+    private String reviewDecisionNotes;
+
+    @Column(name = "invitation_id", length = 64)
+    private String invitationId;
+
     @Builder.Default
     @Column(name = "active")
     private Boolean active = true;
+
+    public boolean isAccountApproved() {
+        return approvalStatus == null || "APPROVED".equalsIgnoreCase(approvalStatus);
+    }
 
     public boolean hasVerifiedUnit() {
         return unitNumber != null

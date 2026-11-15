@@ -14,11 +14,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setApprovalStatus(null);
     setInfoMessage(null);
 
     if (!email.trim() || !password) {
@@ -31,6 +33,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
       const res = await login(email.trim(), password);
       showToast(`Welcome back, ${res.user.name}!`, 'success');
     } catch (err: any) {
+      setApprovalStatus(err?.approvalStatus || null);
       setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
@@ -40,6 +43,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
   const handleForgotPassword = async (e: React.MouseEvent) => {
     e.preventDefault();
     setError(null);
+    setApprovalStatus(null);
     setInfoMessage(null);
     if (!email.trim()) {
       setError('Enter your registered email address first to request a password reset.');
@@ -56,6 +60,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
       setResetLoading(false);
     }
   };
+
+  const isPendingBanner =
+    approvalStatus === 'PENDING_APPROVAL' || approvalStatus === 'PENDING_VERIFICATION';
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -78,9 +85,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] shrink-0">error</span>
-              <span>{error}</span>
+            <div
+              className={`mb-4 p-3 border text-xs rounded-xl flex items-start gap-2 ${
+                isPendingBanner
+                  ? 'bg-amber-50 border-amber-200 text-amber-900'
+                  : 'bg-red-50 border-red-200 text-red-700'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">
+                {isPendingBanner ? 'hourglass_top' : 'error'}
+              </span>
+              <div>
+                {approvalStatus && (
+                  <span className="block font-bold uppercase tracking-wider text-[10px] mb-0.5">
+                    Status: {approvalStatus.replace(/_/g, ' ')}
+                  </span>
+                )}
+                <span>{error}</span>
+              </div>
             </div>
           )}
 
@@ -169,13 +191,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSwitchToSignup }) => {
           </form>
 
           <div className="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
-            New resident at Green Valley?{' '}
+            New to Green Valley Residency or holding an invite?{' '}
             <button
               type="button"
               onClick={onSwitchToSignup}
               className="font-bold text-primary hover:underline"
             >
-              Register Resident Account
+              Register or Redeem Invitation
             </button>
           </div>
         </div>

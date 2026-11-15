@@ -36,6 +36,26 @@ test('normalizeUser populates role, activeRole, and authorizedRoles defaults cle
   assert.equal(multiRoleUser.requestedTower, 'Tower B');
   assert.equal(multiRoleUser.requestedUnitNumber, 'B-402');
   assert.equal(multiRoleUser.unitVerificationStatus, 'PENDING_VERIFICATION');
+
+  const pendingMaintUser = normalizeUser({
+    id: 'u-103',
+    name: 'Kiran Verma',
+    email: 'kiran@civicops.in',
+    phone: '9777777777',
+    activeRole: 'MAINTENANCE',
+    requestedRole: 'MAINTENANCE',
+    approvalStatus: 'PENDING_APPROVAL',
+    staffBadgeId: 'MNT-204',
+    maintenanceSpecialization: 'HVAC & Chillers',
+    societyName: 'Green Valley Residency',
+    active: false
+  });
+
+  assert.equal(pendingMaintUser.requestedRole, 'MAINTENANCE');
+  assert.equal(pendingMaintUser.approvalStatus, 'PENDING_APPROVAL');
+  assert.equal(pendingMaintUser.staffBadgeId, 'MNT-204');
+  assert.equal(pendingMaintUser.maintenanceSpecialization, 'HVAC & Chillers');
+  assert.equal(pendingMaintUser.active, false);
 });
 
 test('extractApiErrorMessage parses structured Spring Boot error payloads and network failures', () => {
