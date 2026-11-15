@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Debug Spring Boot (CivicOpsApplication)",
+      "request": "launch",
+      "mainClass": "com.civicops.community.CivicOpsApplication",
+      "projectName": "civicops-community-backend"
+    }
+  ]
+}
