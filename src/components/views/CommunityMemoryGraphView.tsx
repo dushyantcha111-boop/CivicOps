@@ -285,14 +285,22 @@ export const CommunityMemoryGraphView: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    if (!svgEl || viewMode !== 'TOPOLOGY') return;
+    const onNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      setZoom((prev) => Math.max(0.45, Math.min(2.4, Math.round(prev * factor * 100) / 100)));
+    };
+    svgEl.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => {
+      svgEl.removeEventListener('wheel', onNativeWheel);
+    };
+  }, [viewMode, positionedNodes.length]);
+
   const handleSvgMouseUp = () => {
     dragRef.current.mode = 'NONE';
-  };
-
-  const handleWheelZoom = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.1 : 0.9;
-    setZoom((prev) => Math.max(0.45, Math.min(2.4, Math.round(prev * factor * 100) / 100)));
   };
 
   const handleFitToScreen = () => {
@@ -440,6 +448,12 @@ export const CommunityMemoryGraphView: React.FC = () => {
       const result = await ApiService.findMemoryGraphPath(pathFromId, pathToId);
       setPathResult(result);
       if (result.found) {
+        setViewMode('TOPOLOGY');
+        setCollapsedRootIds((prev) => {
+          const next = new Set(prev);
+          result.pathNodeIds.forEach((id) => next.delete(id));
+          return next;
+        });
         showToast(`Discovered ${result.hopCount}-hop operational path.`);
       } else {
         showToast('No connecting path exists between those two nodes in your authorized graph.', 'info');
@@ -820,7 +834,6 @@ export const CommunityMemoryGraphView: React.FC = () => {
                   onMouseMove={handleSvgMouseMove}
                   onMouseUp={handleSvgMouseUp}
                   onMouseLeave={handleSvgMouseUp}
-                  onWheel={handleWheelZoom}
                 >
                   <defs>
                     <pattern id="civicops-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -894,7 +907,9 @@ export const CommunityMemoryGraphView: React.FC = () => {
                           key={edge.id}
                           onClick={(ev) => {
                             ev.stopPropagation();
-                            setSelectedEdgeId(edge.id);
+                            if (!dragRef.current.moved) {
+                              setSelectedEdgeId(edge.id);
+                            }
                           }}
                           className="cursor-pointer"
                         >
@@ -1263,24 +1278,6 @@ export const CommunityMemoryGraphView: React.FC = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Active Path Breakdown if present */}
-                  {pathResult && pathResult.found && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1.5">
-                      <span className="font-bold text-emerald-900 block">
-                        Shortest Causal Path ({pathResult.hopCount} hop{pathResult.hopCount === 1 ? '' : 's'}):
-                      </span>
-                      <ol className="space-y-1 text-[11px] text-emerald-800">
-                        {pathResult.steps.map((step, i) => (
-                          <li key={step.edgeId}>
-                            {i + 1}. <strong>{step.fromLabel}</strong>{' '}
-                            <span className="font-mono text-[10px]">[{step.relationship}]</span>{' '}
-                            <strong>{step.toLabel}</strong>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
                 </div>
 
                 {canDeepNavigate(selectedNode) && (
@@ -1299,6 +1296,30 @@ export const CommunityMemoryGraphView: React.FC = () => {
               <div className="text-center text-xs text-slate-500 py-10">
                 Select a node or relationship edge to inspect lineage details.
               </div>
+            )}
+
+            {/* Always surface Path Explorer result when active */}
+            {pathResult && (
+              pathResult.found ? (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1.5">
+                  <span className="font-bold text-emerald-900 block">
+                    Shortest Causal Path ({pathResult.hopCount} hop{pathResult.hopCount === 1 ? '' : 's'}):
+                  </span>
+                  <ol className="space-y-1 text-[11px] text-emerald-800">
+                    {pathResult.steps.map((step, i) => (
+                      <li key={step.edgeId}>
+                        {i + 1}. <strong>{step.fromLabel}</strong>{' '}
+                        <span className="font-mono text-[10px]">[{step.relationship}]</span>{' '}
+                        <strong>{step.toLabel}</strong>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                  No connecting path was found between those nodes within your authorized graph scope.
+                </div>
+              )
             )}
           </div>
         </div>

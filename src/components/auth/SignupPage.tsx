@@ -105,17 +105,54 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
     e.preventDefault();
     setError(null);
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+    if (!fullName.trim()) {
+      setError('Full name is required.');
+      return;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (phone.replace(/\D/g, '').length < 7) {
+      setError('Please enter a valid mobile number (at least 7 digits).');
       return;
     }
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     if (!acceptTerms) {
       setError('You must accept the community terms and operational protocols.');
       return;
+    }
+
+    if (mode === 'REGISTER') {
+      if (selectedRole === 'RESIDENT' && !unitNumber.trim()) {
+        setError('Flat / unit number is required for Resident registration.');
+        return;
+      }
+      if (selectedRole === 'MANAGEMENT') {
+        if (!societyName.trim()) {
+          setError('Society / Estate name is required for Society Management onboarding.');
+          return;
+        }
+        if (!designation.trim()) {
+          setError('Committee / Management designation is required.');
+          return;
+        }
+      }
+      if (selectedRole === 'SECURITY' && !staffBadgeId.trim() && !optionalInviteCode.trim()) {
+        setError('Guard badge / agency ID or a Security invitation code is required.');
+        return;
+      }
+      if (selectedRole === 'MAINTENANCE' && !maintenanceSpecialization.trim()) {
+        setError('Technical specialization is required for Maintenance onboarding.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -126,15 +163,20 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
           setLoading(false);
           return;
         }
+        const inviteTargetRole = invitePreview?.targetRole;
         const res = await ApiService.acceptInvitation({
           inviteCode: inviteCodeInput.trim(),
           name: fullName.trim(),
           email: email.trim(),
           phone: phone.trim(),
           password,
-          tower,
-          staffBadgeId: staffBadgeId.trim() || undefined,
-          maintenanceSpecialization: maintenanceSpecialization || undefined
+          tower: inviteTargetRole === 'SECURITY' || inviteTargetRole === 'MAINTENANCE' ? tower : undefined,
+          staffBadgeId:
+            inviteTargetRole === 'SECURITY' && staffBadgeId.trim() ? staffBadgeId.trim() : undefined,
+          maintenanceSpecialization:
+            inviteTargetRole === 'MAINTENANCE' && maintenanceSpecialization
+              ? maintenanceSpecialization
+              : undefined
         });
 
         setCurrentUser(res.user);
@@ -313,6 +355,13 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
                         type="button"
                         onClick={() => {
                           setSelectedRole(card.role);
+                          setTower(
+                            card.role === 'RESIDENT'
+                              ? 'Tower A'
+                              : card.role === 'SECURITY'
+                              ? 'Main Gate'
+                              : 'All Towers'
+                          );
                           setError(null);
                         }}
                         className={`p-2.5 rounded-xl border text-left transition-all ${
@@ -386,6 +435,52 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
                       ? ` • Locked to ${invitePreview.invitedEmailHint}`
                       : ''}
                   </div>
+                </div>
+              )}
+              {invitePreview?.targetRole === 'SECURITY' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <input
+                    type="text"
+                    value={staffBadgeId}
+                    onChange={(e) => setStaffBadgeId(e.target.value)}
+                    placeholder="Guard Badge ID (Optional)"
+                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs uppercase text-slate-900"
+                  />
+                  <select
+                    value={tower}
+                    onChange={(e) => setTower(e.target.value)}
+                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  >
+                    <option value="Main Gate">Main Gate</option>
+                    <option value="Tower A">Tower A</option>
+                    <option value="Tower B">Tower B</option>
+                    <option value="All Towers">All Towers</option>
+                  </select>
+                </div>
+              )}
+              {invitePreview?.targetRole === 'MAINTENANCE' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <select
+                    value={maintenanceSpecialization}
+                    onChange={(e) => setMaintenanceSpecialization(e.target.value)}
+                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  >
+                    <option value="Plumbing & Hydraulics">Plumbing &amp; Hydraulics</option>
+                    <option value="Electrical & DG Grid">Electrical &amp; DG Grid</option>
+                    <option value="HVAC & Ventilation">HVAC &amp; Ventilation</option>
+                    <option value="Elevator & Lift MEP">Elevator &amp; Lift MEP</option>
+                    <option value="Civil & Structural">Civil &amp; Structural</option>
+                  </select>
+                  <select
+                    value={tower}
+                    onChange={(e) => setTower(e.target.value)}
+                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  >
+                    <option value="All Towers">All Towers</option>
+                    <option value="Tower A">Tower A</option>
+                    <option value="Tower B">Tower B</option>
+                    <option value="Tower C">Tower C</option>
+                  </select>
                 </div>
               )}
             </div>
@@ -498,7 +593,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                       Society Address
@@ -513,22 +608,26 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Verification Ref / Invite Code
+                      Registration Ref
                     </label>
                     <input
                       type="text"
-                      value={optionalInviteCode || verificationReference}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val.toUpperCase().startsWith('CIV-')) {
-                          setOptionalInviteCode(val.toUpperCase());
-                        } else {
-                          setOptionalInviteCode('');
-                          setVerificationReference(val);
-                        }
-                      }}
-                      placeholder="RERA / Society Reg # or CIV-MGT-..."
+                      value={verificationReference}
+                      onChange={(e) => setVerificationReference(e.target.value)}
+                      placeholder="RERA / Society Reg #"
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Invite Code (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={optionalInviteCode}
+                      onChange={(e) => setOptionalInviteCode(e.target.value.toUpperCase())}
+                      placeholder="CIV-MGT-..."
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono uppercase text-slate-900"
                     />
                   </div>
                 </div>
